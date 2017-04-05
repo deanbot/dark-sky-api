@@ -1,6 +1,6 @@
 {
   "name": "dark-sky-api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A simple dark sky api wrapper for client side js supporting use of proxy and using method chaining and promises",
   "main": "index.js",
   "scripts": {
