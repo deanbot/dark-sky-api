@@ -1,7 +1,7 @@
 import moment from 'moment';
 import queryString from 'query-string';
 import fetchJsonp from 'fetch-jsonp';
-import fetch from 'isomorphic-fetch';
+import fetch from 'whatwg-fetch';
 
 class DarkSkyApi {
   constructor(apiKey, proxyUrl) {

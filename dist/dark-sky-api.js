@@ -18,9 +18,9 @@ var _fetchJsonp = require('fetch-jsonp');
 
 var _fetchJsonp2 = _interopRequireDefault(_fetchJsonp);
 
-var _isomorphicFetch = require('isomorphic-fetch');
+var _whatwgFetch = require('whatwg-fetch');
 
-var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
+var _whatwgFetch2 = _interopRequireDefault(_whatwgFetch);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -98,7 +98,7 @@ var DarkSkyApi = function () {
       }
       this.generateReqUrl();
 
-      var query = this.proxyUrl ? (0, _isomorphicFetch2.default)(this.url) : (0, _fetchJsonp2.default)(this.url);
+      var query = this.proxyUrl ? (0, _whatwgFetch2.default)(this.url) : (0, _fetchJsonp2.default)(this.url);
 
       return query.then(function (response) {
         return response.json();
