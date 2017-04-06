@@ -17,10 +17,10 @@ import darkSkyApi from 'dark-sky-api';
 
 ### Initialize it
 
-While dark-sky-api allows embedding api keys through use of jsonp on the backend using a proxy to make the api call is highly suggested as this hides the API key from client side requests [ref](https://darksky.net/dev/docs/faq#cross-origin). 
+While dark-sky-api allows embedding api keys through use of jsonp on the backend using a proxy to make the api call is highly suggested as this hides the API key from client side requests [[ref](https://darksky.net/dev/docs/faq#cross-origin)]. 
 
-* proxy url is optional *
-* pass an empty string or false for api key if using proxy url *
+* proxy url is optional
+* pass an empty string or false for api key if using proxy url
 
 ```javascript
 const darkSky = new darkSkyApi('your-dark-sky-api-key', '//base-url-to-proxy/service');
@@ -54,7 +54,7 @@ const excludes = ['alerts', 'currently', 'daily', 'flags', 'hourly', 'minutely']
   exludesBlock = excludes.filter(val => val != 'currently').join(',')
 darkSky.latitude(lat)
   .longitude(long)
-  .exclude()
+  .exclude(excludesBlock)
   .get()
   .then(data => console.log(data));
 ```
