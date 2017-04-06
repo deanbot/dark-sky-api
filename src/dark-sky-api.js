@@ -97,13 +97,7 @@ class DarkSkyApi {
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'currently').join(','))
       .get()
-      .then(({ currently }) => {
-        currently.windDirection = degreeToCardinal(currently.windBearing);
-        if (currently.nearestStormBearing) {
-          currently.nearestStormDirection = degreeToCardinal(currently.nearestStormBearing);
-        }
-        return currently;
-      });
+      .then(({ currently }) => this.processWeatherItem(currently));
   }
 
   /**
@@ -119,7 +113,19 @@ class DarkSkyApi {
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'daily').join(','))
       .get()
-      .then(({ daily }) => daily);
+      .then(({ daily }) => {
+        daily.data = daily.data.map(item => this.processWeatherItem(item));
+        return daily;
+      });
+  }
+
+  processWeatherItem(item) {
+    item.windDirection = degreeToCardinal(item.windBearing);
+    if (item.nearestStormBearing) {
+      item.nearestStormDirection = degreeToCardinal(item.nearestStormBearing);
+    }
+    item.dateTime = moment.unix(item.time);
+    return item;
   }
 
   /**
