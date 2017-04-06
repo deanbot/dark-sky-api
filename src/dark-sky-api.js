@@ -119,13 +119,23 @@ class DarkSkyApi {
       });
   }
 
+  /** 
+   * Make response a bit more friendly
+   * @param {object} item - item to process
+   */
   processWeatherItem(item) {
     item.windDirection = degreeToCardinal(item.windBearing);
-    if (item.nearestStormBearing) {
-      item.nearestStormDirection = degreeToCardinal(item.nearestStormBearing);
-    }
+    !item.nearestStormBearing ? null : item.nearestStormDirection = degreeToCardinal(item.nearestStormBearing);
+
     item.dateTime = moment.unix(item.time);
+    !item.sunriseTime ? null : item.sunriseDateTime = moment.unix(item.sunriseTime);
+    !item.sunsetTime ? null : item.sunsetDateTime = moment.unix(item.sunsetTime);
+    !item.temperatureMinTime ? null : item.temperatureMinDateTime = moment.unix(item.temperatureMinTime);
+    !item.temperatureMaxTime ? null : item.temperatureMaxDateTime = moment.unix(item.temperatureMaxTime);
+    !item.apparentTemperatureMinTime ? null : item.apparentTemperatureMinDateTime = moment.unix(item.apparentTemperatureMinTime);
+    !item.apparentTemperatureMaxTime ? null : item.apparentTemperatureMaxDateTime = moment.unix(item.apparentTemperatureMaxTime);
     return item;
+    !item.precipIntensityMaxTime ? null : item.precipIntensityMaxDateTime = moment.unix(precipIntensityMaxTime);
   }
 
   /**
