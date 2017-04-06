@@ -41,17 +41,18 @@ var DarkSkyApi = function () {
   // initialized; weather the instance of dark sky api has lat and long set
   // _units;
   // _language;
+  // _postProcessor
 
   /**
    * @param {string} apiKey - dark sky api key - consider using a proxy
    * @param {string} proxyUrl - make request behind proxy to hide api key
    */
-  function DarkSkyApi(apiKey, proxyUrl, units, language) {
+  function DarkSkyApi(apiKey, proxyUrl, units, language, processor) {
     var _this = this;
 
     _classCallCheck(this, DarkSkyApi);
 
-    this.setPosition = function (_ref) {
+    this.position = function (_ref) {
       var latitude = _ref.latitude,
           longitude = _ref.longitude;
 
@@ -64,6 +65,7 @@ var DarkSkyApi = function () {
     this.darkSkyApi = new _darkSkySkeleton2.default(apiKey, proxyUrl);
     this._units = units || 'us';
     this._language = language || 'en';
+    this._postProcessor = processor || null;
   }
 
   /**
@@ -76,7 +78,7 @@ var DarkSkyApi = function () {
   _createClass(DarkSkyApi, [{
     key: 'initialize',
     value: function initialize(position) {
-      this.setPosition(position);
+      this.position(position);
       this.initialized = true;
       return this;
     }
@@ -116,6 +118,18 @@ var DarkSkyApi = function () {
       } else {
         !value ? null : this._language = value;
       }
+      return this;
+    }
+
+    /**
+     * Add a post processor for weather items - accepts a weather data object as single parameter - must return object
+     * @param {function} func 
+     */
+
+  }, {
+    key: 'postProcessor',
+    value: function postProcessor(func) {
+      this._postProcessor = func;
       return this;
     }
 
@@ -163,6 +177,7 @@ var DarkSkyApi = function () {
         daily.data = daily.data.map(function (item) {
           return _this3.processWeatherItem(item);
         });
+        daily.updatedDateTime = (0, _moment2.default)();
         return daily;
       });
     }
@@ -185,8 +200,9 @@ var DarkSkyApi = function () {
       !item.temperatureMaxTime ? null : item.temperatureMaxDateTime = _moment2.default.unix(item.temperatureMaxTime);
       !item.apparentTemperatureMinTime ? null : item.apparentTemperatureMinDateTime = _moment2.default.unix(item.apparentTemperatureMinTime);
       !item.apparentTemperatureMaxTime ? null : item.apparentTemperatureMaxDateTime = _moment2.default.unix(item.apparentTemperatureMaxTime);
+
+      !this._postProcessor ? null : item = this._postProcessor(item);
       return item;
-      !item.precipIntensityMaxTime ? null : item.precipIntensityMaxDateTime = _moment2.default.unix(precipIntensityMaxTime);
     }
 
     /**
@@ -246,7 +262,7 @@ var DarkSkyApi = function () {
      * @param {string} apiKey 
      * @param {string} proxyUrl 
      */
-    value: function initialize(apiKey, proxyUrl, units, language) {
+    value: function initialize(apiKey, proxyUrl, units, language, postProcessor) {
       if (this._api) {
         return;
       }
@@ -259,7 +275,8 @@ var DarkSkyApi = function () {
       var proxy = proxyUrl || this.proxyUrl || '';
       var unit = units || this.units || '';
       var lang = language || this.language || '';
-      this._api = new DarkSkyApi(key, proxy, unit, lang);
+      var processor = postProcessor || this.postProcessor || null;
+      this._api = new DarkSkyApi(key, proxy, unit, lang, processor);
     }
 
     /**
@@ -296,6 +313,18 @@ var DarkSkyApi = function () {
     value: function setLanguage(language) {
       this.initialize();
       this._api.language(language);
+    }
+
+    /**
+     * Set post processor for weather items - accepts a weather data object as single parameter - initialize or configure with api key or proxy first - must return object
+     * @param {function} func 
+     */
+
+  }, {
+    key: 'setPostProcessor',
+    value: function setPostProcessor(func) {
+      this.initialize();
+      this._api.postProcessor(func);
     }
 
     /**

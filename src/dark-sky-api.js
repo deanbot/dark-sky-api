@@ -25,15 +25,17 @@ class DarkSkyApi {
   // initialized; weather the instance of dark sky api has lat and long set
   // _units;
   // _language;
+  // _postProcessor
 
   /**
    * @param {string} apiKey - dark sky api key - consider using a proxy
    * @param {string} proxyUrl - make request behind proxy to hide api key
    */
-  constructor(apiKey, proxyUrl, units, language) {
+  constructor(apiKey, proxyUrl, units, language, processor) {
     this.darkSkyApi = new darkSkySkeleton(apiKey, proxyUrl);
     this._units = units || 'us';
     this._language = language || 'en';
+    this._postProcessor = processor || null;
   }
 
   /**
@@ -42,7 +44,7 @@ class DarkSkyApi {
    * @see DarkSkyApi.getNavigatorCoords
    */
   initialize(position) {
-    this.setPosition(position);
+    this.position(position);
     this.initialized = true;
     return this;
   }
@@ -51,7 +53,7 @@ class DarkSkyApi {
    * Set dark sky api position data - Chainable
    * @param {object} position - containing geo latitude and longitude
    */
-  setPosition = ({ latitude, longitude }) => {
+  position = ({ latitude, longitude }) => {
     this.darkSkyApi
       .latitude(latitude)
       .longitude(longitude);
@@ -81,6 +83,15 @@ class DarkSkyApi {
     } else {
       !value ? null : this._language = value;
     }
+    return this;
+  }
+
+  /**
+   * Add a post processor for weather items - accepts a weather data object as single parameter - must return object
+   * @param {function} func 
+   */
+  postProcessor(func) {
+    this._postProcessor = func;
     return this;
   }
 
@@ -115,6 +126,7 @@ class DarkSkyApi {
       .get()
       .then(({ daily }) => {
         daily.data = daily.data.map(item => this.processWeatherItem(item));
+        daily.updatedDateTime = moment();
         return daily;
       });
   }
@@ -134,8 +146,9 @@ class DarkSkyApi {
     !item.temperatureMaxTime ? null : item.temperatureMaxDateTime = moment.unix(item.temperatureMaxTime);
     !item.apparentTemperatureMinTime ? null : item.apparentTemperatureMinDateTime = moment.unix(item.apparentTemperatureMinTime);
     !item.apparentTemperatureMaxTime ? null : item.apparentTemperatureMaxDateTime = moment.unix(item.apparentTemperatureMaxTime);
+
+    !this._postProcessor ? null : item = this._postProcessor(item);
     return item;
-    !item.precipIntensityMaxTime ? null : item.precipIntensityMaxDateTime = moment.unix(precipIntensityMaxTime);
   }
 
   /**
@@ -182,6 +195,7 @@ class DarkSkyApi {
   static proxyUrl;
   static units;
   static language;
+  static postProcessor;
 
   /**
    *  Get browser navigator coords - Promise
@@ -193,7 +207,7 @@ class DarkSkyApi {
    * @param {string} apiKey 
    * @param {string} proxyUrl 
    */
-  static initialize(apiKey, proxyUrl, units, language) {
+  static initialize(apiKey, proxyUrl, units, language, postProcessor) {
     if (this._api) {
       return;
     }
@@ -206,7 +220,8 @@ class DarkSkyApi {
     const proxy = proxyUrl || this.proxyUrl || '';
     const unit = units || this.units || '';
     const lang = language || this.language || '';
-    this._api = new DarkSkyApi(key, proxy, unit, lang);
+    const processor = postProcessor || this.postProcessor || null;
+    this._api = new DarkSkyApi(key, proxy, unit, lang, processor);
   }
 
   /**
@@ -217,7 +232,6 @@ class DarkSkyApi {
     this.initialize();
     return this._api.getResponseUnits();
   }
-
 
   /**
    * Set unit type for response formatting - initialize or configure with api key or proxy first
@@ -235,6 +249,15 @@ class DarkSkyApi {
   static setLanguage(language) {
     this.initialize();
     this._api.language(language);
+  }
+
+  /**
+   * Set post processor for weather items - accepts a weather data object as single parameter - initialize or configure with api key or proxy first - must return object
+   * @param {function} func 
+   */
+  static setPostProcessor(func) {
+    this.initialize();
+    this._api.postProcessor(func);
   }
 
   /**
