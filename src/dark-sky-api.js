@@ -1,90 +1,319 @@
+import darkSkySkeleton from 'dark-sky-skeleton';
 import moment from 'moment';
-import queryString from 'query-string';
-import fetchJsonp from 'fetch-jsonp';
-import fetch from 'whatwg-fetch';
+import { getNavigatorCoords, degreeToCardinal } from 'geo-loc-utils';
+
+const config = {
+  storageKeyCurrent: 'weather-data-current',
+  storageKeyForecast: 'weather-data-forecast',
+  errorMessage: {
+    noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set'
+  },
+  warningMessage: {
+    cantGuessUnits: 'Can\'t guess units. Defaulting to Imperial',
+    invalidUnit: 'not an accepted API unit.',
+    invalidLanguage: 'not an accepted API lanugage.'
+  },
+  excludes: ['alerts', 'currently', 'daily', 'flags', 'hourly', 'minutely'],
+  acceptedUnits: ['auto', 'ca', 'uk2', 'us', 'si'],
+  acceptedLanguage: [
+    'ar', 'az', 'be', 'bs', 'cs', 'de', 'el', 'en', 'es', 'fr', 'hr', 'hu', 'id', 'it', 'is', 'kw', 'nb', 'nl', 'pl', 'pt', 'ru', 'sk', 'sr', 'sv', 'tet', 'tr', 'uk', 'x-pig-latin', 'zh', 'zh-tw'
+  ]
+};
 
 class DarkSkyApi {
-  constructor(apiKey, proxyUrl) {
-    this.proxyUrl = proxyUrl || '';
-    this.apiKey = apiKey || '';
-    this._longitude = null;
-    this._latitude = null;
-    this._time = null;
-    this.query = {};
+  // darkSkyApi; instance of dark sky skeleton
+  // initialized; weather the instance of dark sky api has lat and long set
+  // _units;
+  // _language;
+
+  /**
+   * @param {string} apiKey - dark sky api key - consider using a proxy
+   * @param {string} proxyUrl - make request behind proxy to hide api key
+   */
+  constructor(apiKey, proxyUrl, units, language) {
+    this.darkSkyApi = new darkSkySkeleton(apiKey, proxyUrl);
+    this._units = units || 'us';
+    this._language = language || 'en';
   }
 
-  longitude(long) {
-    !long ? null : this._longitude = long;
+  /**
+   * Initialze dark sky api with position data - Chainable
+   * @param {object} position - containing geo latitude and longitude
+   * @see WeatherApi.getNavigatorCoords
+   */
+  initialize = (position) => {
+    this.setPosition(position);
+    this.initialized = true;
     return this;
   }
 
-  latitude(lat) {
-    !lat ? null : this._latitude = lat;
+  /**
+   * Set dark sky api position data - Chainable
+   * @param {object} position - containing geo latitude and longitude
+   */
+  setPosition = ({ latitude, longitude }) => {
+    this.darkSkyApi
+      .latitude(latitude)
+      .longitude(longitude);
     return this;
   }
 
-  time(time) {
-    !time ? null : this._time = moment(time).format('YYYY-MM-DDTHH:mm:ss');
+  /**
+   * Set unit type for response formatting - Chainable
+   * @param {String} value - unit token
+   */
+  units(value) {
+    if (config.acceptedUnits.indexOf(value) === -1) {
+      console.warn(`${value} ${config.warningMessage.invalidUnit}`); // eslint-disable-line no-console
+    } else {
+      !value ? null : this._units = value;
+    }
     return this;
   }
 
-  units(unit) {
-    !unit ? null : this.query.units = unit;
+  /**
+   * Set language for response summaries
+   * @param {String} value - language token
+   */
+  language(value) {
+    if (config.acceptedLanguage.indexOf(value) === -1) {
+      console.warn(`${value} ${config.warningMessage.invalidLanguage}`); // eslint-disable-line no-console
+    } else {
+      !value ? null : this._language = value;
+    }
     return this;
   }
 
-  language(lang) {
-    !lang ? null : this.query.lang = lang;
-    return this;
-  }
-
-  exclude(blocks) {
-    !blocks ? null : this.query.exclude = blocks;
-    return this;
-  }
-
-  extendHourly(param) {
-    !param ? null : this.query.extend = 'hourly';
-    return this;
-  }
-
-  generateReqUrl() {
-    const baseUrl = this.proxyUrl ? this.proxyUrl : `https://api.darksky.net/forecast/${this.apiKey}`;
-    this.url = `${baseUrl}/${this._latitude},${this._longitude}`;
-    this._time
-      ? this.url += `,${this._time}`
-      : this.url;
-    !this.isEmpty(this.query)
-      ? this.url += `?${queryString.stringify(this.query)}`
-      : this.url;
-  }
-
-  get() {
-    if (!this._latitude || !this._longitude) {
-      return new Promise((resolve, reject) => {
-        reject("Request not sent. ERROR: Longitute or Latitude is missing.");
+  /**
+   * Get forecasted week of weather
+   */
+  loadCurrent() {
+    if (!this.initialized) {
+      return this.loadPositionAsync()
+        .then(position => this.initialize(position).loadCurrent());
+    }
+    return this.darkSkyApi
+      .units(this._units)
+      .language(this._language)
+      .exclude(config.excludes.filter(val => val != 'currently').join(','))
+      .get()
+      .then(({ currently }) => {
+        currently.windDirection = degreeToCardinal(currently.windBearing);
+        if (currently.nearestStormBearing) {
+          currently.nearestStormDirection = degreeToCardinal(currently.nearestStormBearing);
+        }
+        return currently;
       });
-    }
-    this.generateReqUrl();
-
-    const query = this.proxyUrl ? fetch(this.url) : fetchJsonp(this.url);
-
-    return query.then(function (response) {
-      return response.json();
-    }).then(function (json) {
-      return json;
-    }).catch(function (ex) {
-      return ex;
-    });
   }
 
-  isEmpty(obj) {
-    for (let key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        return false;
-      }
+  /**
+   * Get forecasted week of weather
+   */
+  loadForecast() {
+    if (!this.initialized) {
+      return this.loadPositionAsync()
+        .then(position => this.initialize(position).loadCurrent());
     }
-    return true;
+    return this.darkSkyApi
+      .units(this._units)
+      .language(this._language)
+      .exclude(config.excludes.filter(val => val != 'daily').join(','))
+      .get()
+      .then(data => {
+        console.log(data); // eslint-disable-line no-console
+      });
+  }
+
+  /**
+   * Get units object showing units returned based on configured units
+   * @returns {object} units
+   */
+  getResponseUnits() {
+    let unitsObject, unitsId;
+
+    if (this._units === 'auto') {
+      console.warn(config.warningMessage.cantGuessUnits); // eslint-disable-line no-console
+      unitsId = 'us';
+    } else {
+      unitsId = this._units;
+    }
+
+    // get units object by id
+    switch (unitsId) {
+      case 'us':
+        unitsObject = WeatherApi.getUsUnits();
+        break;
+      case 'ca':
+        unitsObject = WeatherApi.getCaUnits();
+        break;
+      case 'uk2':
+        unitsObject = WeatherApi.getUk2Units();
+        break;
+      case 'si':
+        unitsObject = WeatherApi.getSiUnits();
+        break;
+    }
+    return unitsObject;
+  }
+
+  /**
+   *  Get browser navigator coords - Promise
+   */
+  loadPositionAsync = WeatherApi.loadPositionAsync;
+
+  static _api;
+
+  // allow config and deferring of initialization
+  static apiKey;
+  static proxyUrl;
+  static units;
+  static language;
+
+  /**
+   *  Get browser navigator coords - Promise
+   */
+  static loadPositionAsync = () => getNavigatorCoords();
+
+  /**
+   * Initialize a static instance of weather api with dark sky api key
+   * @param {string} apiKey 
+   * @param {string} proxyUrl 
+   */
+  static initialize(apiKey, proxyUrl, units, language) {
+    if (this._api) {
+      return;
+    }
+
+    if (!this.apiKey && !this.proxyUrl && !apiKey && !proxyUrl) {
+      throw new Error(config.errorMessage.noApiKeyOrProxyUrl);
+    }
+
+    const key = apiKey || this.apiKey || '';
+    const proxy = proxyUrl || this.proxyUrl || '';
+    const unit = units || this.units || '';
+    const lang = language || this.language || '';
+    this._api = new WeatherApi(key, proxy, unit, lang);
+  }
+
+  /**
+   * Get units object showing units returned based on configured units - initialize or configure with api key or proxy first
+   * @returns {object} units
+   */
+  static getResponseUnits() {
+    this.initialize();
+    return this._api.getResponseUnits();
+  }
+
+
+  /**
+   * Set unit type for response formatting - initialize or configure with api key or proxy first
+   * @param {String} value - unit token
+   */
+  static setUnits(units) {
+    this.initialize();
+    this._api.units(units);
+  }
+
+  /**
+   * Set language for response summaries - initialize or configure with api key or proxy first
+   * @param {String} value - language token
+   */
+  static setLanguage(language) {
+    this.initialize();
+    this._api.language(language);
+  }
+
+  /**
+   * Get today's weather - Promise
+   * @param {object} [position] - if omitted will use loadPositionAsync
+   */
+  static loadCurrent(position) {
+    this.initialize();
+    if (position) {
+      return this._api
+        .setPosition(position)
+        .loadCurrent();
+    } else {
+      return this._api.loadCurrent();
+    }
+  }
+
+  /**
+   * Get forecasted week of weather - Promise
+   * @param {object} [position] - if omitted api will use loadPositionAsync
+   */
+  static loadForecast(position) {
+    this.initialize();
+    if (position) {
+      return this._api
+        .setPosition(position)
+        .loadForecast();
+    } else {
+      return this._api.loadForecast();
+    }
+  }
+
+  /**
+   * Return the us response units
+   * @return {object} units
+   */
+  static getUsUnits() {
+    return {
+      nearestStormDistance: 'mi',
+      precipIntensity: 'in/h',
+      precipIntensityMax: 'in/h',
+      precipAccumulation: 'in',
+      temperature: 'f',
+      temperatureMin: 'f',
+      temperatureMax: 'f',
+      apparentTemperature: 'f',
+      dewPoint: 'f',
+      windSpeed: 'mph',
+      pressure: 'mbar',
+      visibility: 'mi'
+    };
+  }
+
+  /**
+   * Return the si response units
+   * @return {object} units
+   */
+  static getSiUnits() {
+    return {
+      nearestStormDistance: 'km',
+      precipIntensity: 'mm/h',
+      precipIntensityMax: 'mm/h',
+      precipAccumulation: 'cm',
+      temperature: 'c',
+      temperatureMin: 'c',
+      temperatureMax: 'c',
+      apparentTemperature: 'c',
+      dewPoint: 'c',
+      windSpeed: 'mps',
+      pressure: 'hPa',
+      visibility: 'km'
+    };
+  }
+
+  /** 
+   * Return ca response units
+   * @return {object} units
+   */
+  static getCaUnits() {
+    let unitsObject = this.getUsUnits();
+    unitsObject.windSpeed = 'km/h';
+    return unitsObject;
+  }
+
+  /**
+   * Return uk2 response units
+   * @return {object} units
+   */
+  static getUk2Units() {
+    let unitsObject = this.getSiUnits();
+    unitsObject.nearestStormDistance = unitsObject.visibility = 'mi';
+    unitsObject.windSpeed = 'mph';
+    return unitsObject;
   }
 }
 

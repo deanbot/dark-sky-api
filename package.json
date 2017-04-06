@@ -1,7 +1,7 @@
 {
   "name": "dark-sky-api",
-  "version": "0.0.32",
-  "description": "A simple dark sky api wrapper for client side js supporting use of proxy and using method chaining and promises",
+  "version": "0.1.0",
+  "description": "a simple and robust dark sky api service for client-side js",
   "main": "index.js",
   "scripts": {
     "build": "babel ./src/dark-sky-api.js --out-file ./dist/dark-sky-api.js"
@@ -33,9 +33,7 @@
     "mocha": "^3.2.0"
   },
   "dependencies": {
-    "fetch-jsonp": "^1.0.6",
-    "moment": "^2.18.1",
-    "query-string": "^4.3.2",
-    "whatwg-fetch": "^2.0.3"
+    "dark-sky-skeleton": "^0.1.1",
+    "moment": "^2.18.1"
   }
 }

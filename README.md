@@ -1,8 +1,18 @@
 # dark-sky-api
 
-*Based on Elias Hussary's [dark-sky](https://github.com/eliash91/dark-sky).*
+A simple and robust wrapper library for Dark Sky API (previously known as Forecast.io). 
 
-A wrapper library for Dark Sky API (previously known as Forecast.io). See Dark Sky developer docs: [https://darksky.net/dev/docs](https://darksky.net/dev/docs).
+Features:
+
+* Simple to use.
+* Promise based (es6-promises).
+* Versatile - use it statically or instantiate it.
+* Dates returned as [moments](https://momentjs.com/).
+* Excludes are used automatically to reduce latency and save cache space ([see 'Request Parameters'](https://darksky.net/dev/docs/forecast)).
+
+See Dark Sky developer docs: [https://darksky.net/dev/docs](https://darksky.net/dev/docs).
+
+Need something even smaller? Dark sky api uses [dark-sky-skeleton](https://github.com/deanbot/dark-sky-skeleton).
 
 ### Install it
 
@@ -12,49 +22,66 @@ A wrapper library for Dark Sky API (previously known as Forecast.io). See Dark S
 
 ### Require it
 ```javascript
-import darkSkyApi from 'dark-sky-api';
+import DarkSkyApi from 'dark-sky-api';
 ```
 
-### Initialize it
+### Configure it statically (suggested)
 
-While dark-sky-api allows embedding api keys through use of jsonp on the backend using a proxy to make the api call is highly suggested as this hides the API key from client side requests [[ref](https://darksky.net/dev/docs/faq#cross-origin)]. 
+Configuring dark-sky-api with an api key is supported but each request will expose said api key (for anyone to capture). 
 
-* proxy url is optional
-* pass an empty string or false for api key if using proxy url
+For this reason Dark Sky strongly suggests hiding your API key through use of a proxy [[ref](https://darksky.net/dev/docs/faq#cross-origin)].
 
 ```javascript
-const darkSky = new darkSkyApi('your-dark-sky-api-key', '//base-url-to-proxy/service');
+// one of the two is required
+DarkSkyApi.apiKey = 'your-dark-sky-api-key';
+DarkSkyApi.proxyUrl = '//base-url-to-proxy/service';
+
+// optional configuration
+DarkSkyApi.units = 'si'; // default 'us'
+DarkSKyApi.language = 'de'; // default 'en'
 ```
 
 ### Use it
 
-```javascript
-darkSky.latitude(lat)
-  .longitude(long)
-  .get();
-  .then(data => console.log(data));
-```
-
-Feel free to omit setting of latitude and longitude for subsequent calls i.e.:
+Today's weather:
 
 ```javascript
-const darkSky = new darkSkyApi('your-dark-sky-api-key');
-darkSky.latitude(lat)
-  .longitude(long);
-
-darkSky.get();
+DarkSkyApi.getCurrent()
+  .then(result => console.log(result));
 ```
 
-### Make use of excludes
-
-"Exclude some number of data blocks from the API response. This is useful for reducing latency and saving cache space ([see 'Request Parameters'](https://darksky.net/dev/docs/forecast))."
+Forecasted week of weather:
 
 ```javascript
-const excludes = ['alerts', 'currently', 'daily', 'flags', 'hourly', 'minutely'],
-  exludesBlock = excludes.filter(val => val != 'currently').join(',')
-darkSky.latitude(lat)
-  .longitude(long)
-  .exclude(excludesBlock)
-  .get()
-  .then(data => console.log(data));
+DarkSkyApi.getForecast()
+  .then(result => console.log(result));
 ```
+
+### What about geo location?
+By default dark-sky-api will use [Geolocation.getCurrentPosition](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) to grab the current browser location automatically.
+
+To manually set geolocation position pass along a position object:
+
+```javascript
+const position = {
+  latitude: 43.075284, 
+  longitude: -89.384318
+};
+DarkSkyApi.getCurrent(position)
+  .then(result => console.log(result));
+```
+
+### Response units
+
+To get the units used in dark sky api responses per configured unit type (default is 'us') use GetResponseUnits after configuration.
+
+```javascript
+const units = DarkSkyApi.getResponseUnits();
+```
+
+#### To Do 
+
+* show examples of instantiation
+* show example of using results with units
+* add hourly and minutely api methods
+* add flags and alerts apit methods
