@@ -122,6 +122,19 @@ DarkSkyApi.loadCurrent()
   .then(data => console.log(data.dayNice)); // Today
 ```
 
+### Hourly, Minutely, Alerts, and Flags
+
+To retrieve any of these results use loadItAll with optional excludesBlock
+
+```javascript
+DarkSkyApi.loadItAll()
+  .then(console.log);
+
+DarkSkyApi.loadItAll('daily,hourly,minutely,flags') // just return alerts
+
+DarkSkyApi.loadItAll(excludes, position); // explicit position is second argument
+```
+
 ### Initialization
 
 tldr: it's automatic, but configure first or do it manually.

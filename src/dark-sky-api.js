@@ -132,6 +132,29 @@ class DarkSkyApi {
   }
 
   /** 
+   * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
+   * daily and durrently are processed if returned
+   * @param {string} excludesBlock - pass comma separated excludes
+   */
+  loadItAll(excludesBlock) {
+    if (!this.initialized) {
+      return this.loadPositionAsync()
+        .then(position => this.initialize(position).loadCurrent());
+    }
+    return this.darkSkyApi
+      .units(this._units)
+      .language(this._language)
+      .exclude(excludesBlock)
+      .get()
+      .then((data) => {
+        !data.currently ? null : data.currently = this.processWeatherItem(data.currently);
+        !data.daily.data ? null : data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
+        data.updatedDateTime = moment();
+        return data;
+      });
+  }
+
+  /** 
    * Make response a bit more friendly
    * @param {object} item - item to process
    */
@@ -287,6 +310,23 @@ class DarkSkyApi {
         .loadForecast();
     } else {
       return this._api.loadForecast();
+    }
+  }
+
+  /** 
+   * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
+   * daily and currently are processed if returned
+   * @param {string} excludesBlock - pass comma separated excludes
+   * @param {object} [position] - if omitted api will use loadPositionAsync
+   */
+  static loadItAll(excludesBlock, position) {
+    this.initialize();
+    if (position) {
+      return this._api
+        .setPosition(position)
+        .loadItAll(excludesBlock);
+    } else {
+      return this._api.loadItAll(excludesBlock);
     }
   }
 

@@ -183,6 +183,32 @@ var DarkSkyApi = function () {
     }
 
     /** 
+     * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
+     * daily and durrently are processed if returned
+     * @param {string} excludesBlock - pass comma separated excludes
+     */
+
+  }, {
+    key: 'loadItAll',
+    value: function loadItAll(excludesBlock) {
+      var _this4 = this;
+
+      if (!this.initialized) {
+        return this.loadPositionAsync().then(function (position) {
+          return _this4.initialize(position).loadCurrent();
+        });
+      }
+      return this.darkSkyApi.units(this._units).language(this._language).exclude(excludesBlock).get().then(function (data) {
+        !data.currently ? null : data.currently = _this4.processWeatherItem(data.currently);
+        !data.daily.data ? null : data.daily.data = data.daily.data.map(function (item) {
+          return _this4.processWeatherItem(item);
+        });
+        data.updatedDateTime = (0, _moment2.default)();
+        return data;
+      });
+    }
+
+    /** 
      * Make response a bit more friendly
      * @param {object} item - item to process
      */
@@ -356,6 +382,24 @@ var DarkSkyApi = function () {
         return this._api.setPosition(position).loadForecast();
       } else {
         return this._api.loadForecast();
+      }
+    }
+
+    /** 
+     * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
+     * daily and currently are processed if returned
+     * @param {string} excludesBlock - pass comma separated excludes
+     * @param {object} [position] - if omitted api will use loadPositionAsync
+     */
+
+  }, {
+    key: 'loadItAll',
+    value: function loadItAll(excludesBlock, position) {
+      this.initialize();
+      if (position) {
+        return this._api.setPosition(position).loadItAll(excludesBlock);
+      } else {
+        return this._api.loadItAll(excludesBlock);
       }
     }
 
