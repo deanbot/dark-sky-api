@@ -39,9 +39,9 @@ class DarkSkyApi {
   /**
    * Initialze dark sky api with position data - Chainable
    * @param {object} position - containing geo latitude and longitude
-   * @see WeatherApi.getNavigatorCoords
+   * @see DarkSkyApi.getNavigatorCoords
    */
-  initialize = (position) => {
+  initialize(position) {
     this.setPosition(position);
     this.initialized = true;
     return this;
@@ -119,9 +119,7 @@ class DarkSkyApi {
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'daily').join(','))
       .get()
-      .then(data => {
-        console.log(data); // eslint-disable-line no-console
-      });
+      .then(({ daily }) => daily);
   }
 
   /**
@@ -141,16 +139,16 @@ class DarkSkyApi {
     // get units object by id
     switch (unitsId) {
       case 'us':
-        unitsObject = WeatherApi.getUsUnits();
+        unitsObject = DarkSkyApi.getUsUnits();
         break;
       case 'ca':
-        unitsObject = WeatherApi.getCaUnits();
+        unitsObject = DarkSkyApi.getCaUnits();
         break;
       case 'uk2':
-        unitsObject = WeatherApi.getUk2Units();
+        unitsObject = DarkSkyApi.getUk2Units();
         break;
       case 'si':
-        unitsObject = WeatherApi.getSiUnits();
+        unitsObject = DarkSkyApi.getSiUnits();
         break;
     }
     return unitsObject;
@@ -159,7 +157,7 @@ class DarkSkyApi {
   /**
    *  Get browser navigator coords - Promise
    */
-  loadPositionAsync = WeatherApi.loadPositionAsync;
+  loadPositionAsync = DarkSkyApi.loadPositionAsync;
 
   static _api;
 
@@ -192,7 +190,7 @@ class DarkSkyApi {
     const proxy = proxyUrl || this.proxyUrl || '';
     const unit = units || this.units || '';
     const lang = language || this.language || '';
-    this._api = new WeatherApi(key, proxy, unit, lang);
+    this._api = new DarkSkyApi(key, proxy, unit, lang);
   }
 
   /**
