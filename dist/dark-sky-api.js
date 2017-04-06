@@ -51,12 +51,6 @@ var DarkSkyApi = function () {
 
     _classCallCheck(this, DarkSkyApi);
 
-    this.initialize = function (position) {
-      _this.setPosition(position);
-      _this.initialized = true;
-      return _this;
-    };
-
     this.setPosition = function (_ref) {
       var latitude = _ref.latitude,
           longitude = _ref.longitude;
@@ -65,7 +59,7 @@ var DarkSkyApi = function () {
       return _this;
     };
 
-    this.loadPositionAsync = WeatherApi.loadPositionAsync;
+    this.loadPositionAsync = DarkSkyApi.loadPositionAsync;
 
     this.darkSkyApi = new _darkSkySkeleton2.default(apiKey, proxyUrl);
     this._units = units || 'us';
@@ -75,17 +69,24 @@ var DarkSkyApi = function () {
   /**
    * Initialze dark sky api with position data - Chainable
    * @param {object} position - containing geo latitude and longitude
-   * @see WeatherApi.getNavigatorCoords
-   */
-
-
-  /**
-   * Set dark sky api position data - Chainable
-   * @param {object} position - containing geo latitude and longitude
+   * @see DarkSkyApi.getNavigatorCoords
    */
 
 
   _createClass(DarkSkyApi, [{
+    key: 'initialize',
+    value: function initialize(position) {
+      this.setPosition(position);
+      this.initialized = true;
+      return this;
+    }
+
+    /**
+     * Set dark sky api position data - Chainable
+     * @param {object} position - containing geo latitude and longitude
+     */
+
+  }, {
     key: 'units',
 
 
@@ -136,12 +137,7 @@ var DarkSkyApi = function () {
         return val != 'currently';
       }).join(',')).get().then(function (_ref2) {
         var currently = _ref2.currently;
-
-        currently.windDirection = (0, _geoLocUtils.degreeToCardinal)(currently.windBearing);
-        if (currently.nearestStormBearing) {
-          currently.nearestStormDirection = (0, _geoLocUtils.degreeToCardinal)(currently.nearestStormBearing);
-        }
-        return currently;
+        return _this2.processWeatherItem(currently);
       });
     }
 
@@ -161,9 +157,36 @@ var DarkSkyApi = function () {
       }
       return this.darkSkyApi.units(this._units).language(this._language).exclude(config.excludes.filter(function (val) {
         return val != 'daily';
-      }).join(',')).get().then(function (data) {
-        console.log(data); // eslint-disable-line no-console
+      }).join(',')).get().then(function (_ref3) {
+        var daily = _ref3.daily;
+
+        daily.data = daily.data.map(function (item) {
+          return _this3.processWeatherItem(item);
+        });
+        return daily;
       });
+    }
+
+    /** 
+     * Make response a bit more friendly
+     * @param {object} item - item to process
+     */
+
+  }, {
+    key: 'processWeatherItem',
+    value: function processWeatherItem(item) {
+      item.windDirection = (0, _geoLocUtils.degreeToCardinal)(item.windBearing);
+      !item.nearestStormBearing ? null : item.nearestStormDirection = (0, _geoLocUtils.degreeToCardinal)(item.nearestStormBearing);
+
+      item.dateTime = _moment2.default.unix(item.time);
+      !item.sunriseTime ? null : item.sunriseDateTime = _moment2.default.unix(item.sunriseTime);
+      !item.sunsetTime ? null : item.sunsetDateTime = _moment2.default.unix(item.sunsetTime);
+      !item.temperatureMinTime ? null : item.temperatureMinDateTime = _moment2.default.unix(item.temperatureMinTime);
+      !item.temperatureMaxTime ? null : item.temperatureMaxDateTime = _moment2.default.unix(item.temperatureMaxTime);
+      !item.apparentTemperatureMinTime ? null : item.apparentTemperatureMinDateTime = _moment2.default.unix(item.apparentTemperatureMinTime);
+      !item.apparentTemperatureMaxTime ? null : item.apparentTemperatureMaxDateTime = _moment2.default.unix(item.apparentTemperatureMaxTime);
+      return item;
+      !item.precipIntensityMaxTime ? null : item.precipIntensityMaxDateTime = _moment2.default.unix(precipIntensityMaxTime);
     }
 
     /**
@@ -187,16 +210,16 @@ var DarkSkyApi = function () {
       // get units object by id
       switch (unitsId) {
         case 'us':
-          unitsObject = WeatherApi.getUsUnits();
+          unitsObject = DarkSkyApi.getUsUnits();
           break;
         case 'ca':
-          unitsObject = WeatherApi.getCaUnits();
+          unitsObject = DarkSkyApi.getCaUnits();
           break;
         case 'uk2':
-          unitsObject = WeatherApi.getUk2Units();
+          unitsObject = DarkSkyApi.getUk2Units();
           break;
         case 'si':
-          unitsObject = WeatherApi.getSiUnits();
+          unitsObject = DarkSkyApi.getSiUnits();
           break;
       }
       return unitsObject;
@@ -236,7 +259,7 @@ var DarkSkyApi = function () {
       var proxy = proxyUrl || this.proxyUrl || '';
       var unit = units || this.units || '';
       var lang = language || this.language || '';
-      this._api = new WeatherApi(key, proxy, unit, lang);
+      this._api = new DarkSkyApi(key, proxy, unit, lang);
     }
 
     /**
