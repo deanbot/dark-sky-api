@@ -204,4 +204,5 @@ api.loadPositionAsync() // get current position
 #### To Do 
 
 * add hourly and minutely api methods
-* add flags and alerts apit methods
+* add flags and alerts api methods
+* add extend hourly option

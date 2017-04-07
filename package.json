@@ -1,6 +1,6 @@
 {
   "name": "dark-sky-api",
-  "version": "0.5.1",
+  "version": "0.5.11",
   "description": "a simple and robust dark sky api service for client-side js",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,9 @@
     "mocha": "^3.2.0"
   },
   "dependencies": {
-    "dark-sky-skeleton": "^0.1.1",
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "dark-sky-skeleton": "^0.1.2",
     "moment": "^2.18.1"
   }
 }
