@@ -100,7 +100,7 @@ class DarkSkyApi {
    */
   loadCurrent() {
     if (!this.initialized) {
-      return this.loadPositionAsync()
+      return this.loadPosition()
         .then(position => this.initialize(position).loadCurrent());
     }
     return this.darkSkyApi
@@ -116,18 +116,18 @@ class DarkSkyApi {
    */
   loadForecast() {
     if (!this.initialized) {
-      return this.loadPositionAsync()
-        .then(position => this.initialize(position).loadCurrent());
+      return this.loadPosition()
+        .then(position => this.initialize(position).loadForecast());
     }
     return this.darkSkyApi
       .units(this._units)
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'daily').join(','))
       .get()
-      .then(({ daily }) => {
-        daily.data = daily.data.map(item => this.processWeatherItem(item));
-        daily.updatedDateTime = moment();
-        return daily;
+      .then((data) => {
+        data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
+        data.daily.updatedDateTime = moment();
+        return data;
       });
   }
 
@@ -138,8 +138,8 @@ class DarkSkyApi {
    */
   loadItAll(excludesBlock) {
     if (!this.initialized) {
-      return this.loadPositionAsync()
-        .then(position => this.initialize(position).loadCurrent());
+      return this.loadPosition()
+        .then(position => this.initialize(position).loadItAll(excludesBlock));
     }
     return this.darkSkyApi
       .units(this._units)
@@ -209,7 +209,7 @@ class DarkSkyApi {
   /**
    *  Get browser navigator coords - Promise
    */
-  loadPositionAsync = DarkSkyApi.loadPositionAsync;
+  loadPosition = DarkSkyApi.loadPosition;
 
   static _api;
 
@@ -223,7 +223,7 @@ class DarkSkyApi {
   /**
    *  Get browser navigator coords - Promise
    */
-  static loadPositionAsync = () => getNavigatorCoords();
+  static loadPosition = () => getNavigatorCoords();
 
   /**
    * Initialize a static instance of weather api with dark sky api key
@@ -285,7 +285,7 @@ class DarkSkyApi {
 
   /**
    * Get today's weather - Promise
-   * @param {object} [position] - if omitted will use loadPositionAsync
+   * @param {object} [position] - if omitted will use loadPosition
    */
   static loadCurrent(position) {
     this.initialize();
@@ -300,7 +300,7 @@ class DarkSkyApi {
 
   /**
    * Get forecasted week of weather - Promise
-   * @param {object} [position] - if omitted api will use loadPositionAsync
+   * @param {object} [position] - if omitted api will use loadPosition
    */
   static loadForecast(position) {
     this.initialize();
@@ -317,7 +317,7 @@ class DarkSkyApi {
    * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
    * daily and currently are processed if returned
    * @param {string} excludesBlock - pass comma separated excludes
-   * @param {object} [position] - if omitted api will use loadPositionAsync
+   * @param {object} [position] - if omitted api will use loadPosition
    */
   static loadItAll(excludesBlock, position) {
     this.initialize();

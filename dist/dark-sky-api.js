@@ -60,7 +60,7 @@ var DarkSkyApi = function () {
       return _this;
     };
 
-    this.loadPositionAsync = DarkSkyApi.loadPositionAsync;
+    this.loadPosition = DarkSkyApi.loadPosition;
 
     this.darkSkyApi = new _darkSkySkeleton2.default(apiKey, proxyUrl);
     this._units = units || 'us';
@@ -143,7 +143,7 @@ var DarkSkyApi = function () {
       var _this2 = this;
 
       if (!this.initialized) {
-        return this.loadPositionAsync().then(function (position) {
+        return this.loadPosition().then(function (position) {
           return _this2.initialize(position).loadCurrent();
         });
       }
@@ -165,20 +165,18 @@ var DarkSkyApi = function () {
       var _this3 = this;
 
       if (!this.initialized) {
-        return this.loadPositionAsync().then(function (position) {
-          return _this3.initialize(position).loadCurrent();
+        return this.loadPosition().then(function (position) {
+          return _this3.initialize(position).loadForecast();
         });
       }
       return this.darkSkyApi.units(this._units).language(this._language).exclude(config.excludes.filter(function (val) {
         return val != 'daily';
-      }).join(',')).get().then(function (_ref3) {
-        var daily = _ref3.daily;
-
-        daily.data = daily.data.map(function (item) {
+      }).join(',')).get().then(function (data) {
+        data.daily.data = data.daily.data.map(function (item) {
           return _this3.processWeatherItem(item);
         });
-        daily.updatedDateTime = (0, _moment2.default)();
-        return daily;
+        data.daily.updatedDateTime = (0, _moment2.default)();
+        return data;
       });
     }
 
@@ -194,8 +192,8 @@ var DarkSkyApi = function () {
       var _this4 = this;
 
       if (!this.initialized) {
-        return this.loadPositionAsync().then(function (position) {
-          return _this4.initialize(position).loadCurrent();
+        return this.loadPosition().then(function (position) {
+          return _this4.initialize(position).loadItAll(excludesBlock);
         });
       }
       return this.darkSkyApi.units(this._units).language(this._language).exclude(excludesBlock).get().then(function (data) {
@@ -355,7 +353,7 @@ var DarkSkyApi = function () {
 
     /**
      * Get today's weather - Promise
-     * @param {object} [position] - if omitted will use loadPositionAsync
+     * @param {object} [position] - if omitted will use loadPosition
      */
 
   }, {
@@ -371,7 +369,7 @@ var DarkSkyApi = function () {
 
     /**
      * Get forecasted week of weather - Promise
-     * @param {object} [position] - if omitted api will use loadPositionAsync
+     * @param {object} [position] - if omitted api will use loadPosition
      */
 
   }, {
@@ -389,7 +387,7 @@ var DarkSkyApi = function () {
      * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
      * daily and currently are processed if returned
      * @param {string} excludesBlock - pass comma separated excludes
-     * @param {object} [position] - if omitted api will use loadPositionAsync
+     * @param {object} [position] - if omitted api will use loadPosition
      */
 
   }, {
@@ -482,7 +480,7 @@ var DarkSkyApi = function () {
   return DarkSkyApi;
 }();
 
-DarkSkyApi.loadPositionAsync = function () {
+DarkSkyApi.loadPosition = function () {
   return (0, _geoLocUtils.getNavigatorCoords)();
 };
 
