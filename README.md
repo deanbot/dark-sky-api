@@ -38,7 +38,7 @@ DarkSkyApi.proxyUrl = '//base-url-to-proxy/service';
 
 // optional configuration
 DarkSkyApi.units = 'si'; // default 'us'
-DarkSKyApi.language = 'de'; // default 'en'
+DarkSkyApi.language = 'de'; // default 'en'
 DarkSkyApi.postProcessor = (item) => { // default null;
   item.day = item.dateTime.format('ddd');
   return item;
@@ -124,7 +124,7 @@ DarkSkyApi.loadCurrent()
 
 ### Hourly, Minutely, Alerts, and Flags
 
-To retrieve any of these results use loadItAll with optional excludesBlock
+To retrieve any of these results use loadItAll with optional excludesBlock. ExcludesBlock indicates which data points to omit.
 
 ```javascript
 DarkSkyApi.loadItAll()
@@ -135,15 +135,25 @@ DarkSkyApi.loadItAll('daily,hourly,minutely,flags') // just return alerts
 DarkSkyApi.loadItAll(excludes, position); // explicit position is second argument
 ```
 
-### Initialization
+### Initialization / Configuration
 
-tldr: it's automatic, but configure first or do it manually.
+Tldr: Initialization of the api is automatic, but configure before making api calls.
 
-Implicit (suggested)
+Static configuration settings such as apiKey, proxyUrl, units, language, and postProcessor are set prior to initialization (configuration phase), locked in during initalization (implicit or explicit), and can be changed after initialization.
 
-This happens automatically when making a method call such as loadCurrent or LoadForecast. Remember to configure before hand.
+*Implicit (suggested)*
 
-explicite
+This happens automatically when making a method call such as loadCurrent, loadForecast or loadItAll. Remember to configure beforehand.
+
+```javascript
+// configuration code 
+DarkSkyApi.apiKey = 'my-api-key';
+
+// api call somewhere else
+DarkSkyApi.loadCurrent(); // initialized automatically
+```
+
+*Explicit*
 
 ```javascript
 DarkSkyApi.apiKey = 'my-api-key';
@@ -156,9 +166,15 @@ or
 DarkSkyApi.initialize(apiKey, proxyUrl, units, language, postProcessor); // only apiKey or proxyUrl are required
 ```
 
-#### Configure after initialization/use
+#### Change/set configuration after initialization/use
+
+It's possible to change units, language, and postProcessor after initialization. Note: calling any of the static `set[Config]` methods will initialize the api so make sure you've added a proxy url or api call before using them.
 
 ```javascript
+DarkSkyApi.apiKey = 'my-api-key';
+DarkSkyApi.loadCurrent();
+
+// config after initialization
 DarkSkyApi.setUnits('auto');
 DarkSkyApi.setLanguage('x-pig-latin');
 DarkSkyApi.setPostProcessor((item) => { 
@@ -166,10 +182,10 @@ DarkSkyApi.setPostProcessor((item) => {
     temperature: item.temperatureMax || item.temperature,
     icon: item.icon
   };
-})
+});
 ```
 
-### Instantiation
+### Creating an instance
 
 If you need to maintain multiple instances (configurations) of dark-sky-api create an instance.
 
@@ -206,3 +222,4 @@ api.loadPositionAsync() // get current position
 * add hourly and minutely api methods
 * add flags and alerts api methods
 * add extend hourly option
+* add tests
