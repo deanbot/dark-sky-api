@@ -6,6 +6,7 @@ Features:
 
 * Simple to use.
 * Promise based (es6-promises).
+* Lightweight browser location checking (by default).
 * Versatile - use it statically or instantiate it.
 * Dates returned as [moments](https://momentjs.com/).
 * Excludes are used automatically to reduce latency and save cache space ([see 'Request Parameters'](https://darksky.net/dev/docs/forecast)).
@@ -212,9 +213,7 @@ api.setPosition(position);
 
 // change back
 api.loadPositionAsync() // get current position
-  .then(position => {
-    api.setPosition(position);
-  });
+  .then(position => api.setPosition(position));
 ```
 
 #### To Do 

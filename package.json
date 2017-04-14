@@ -37,6 +37,7 @@
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "dark-sky-skeleton": "^0.1.2",
+    "geo-loc-utils": "^0.0.2",
     "moment": "^2.18.1"
   }
 }
