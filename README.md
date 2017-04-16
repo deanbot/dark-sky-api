@@ -209,11 +209,11 @@ position = {
   latitude: 43.075284, 
   longitude: -89.384318
 };
-api.setPosition(position);
+api.position(position);
 
 // change back
 api.loadPositionAsync() // get current position
-  .then(position => api.setPosition(position));
+  .then(position => api.position(position));
 ```
 
 #### To Do 

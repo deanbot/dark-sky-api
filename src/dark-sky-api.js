@@ -57,6 +57,7 @@ class DarkSkyApi {
     this.darkSkyApi
       .latitude(latitude)
       .longitude(longitude);
+    this.initialized = true;
     return this;
   }
 
@@ -291,7 +292,7 @@ class DarkSkyApi {
     this.initialize();
     if (position) {
       return this._api
-        .setPosition(position)
+        .position(position)
         .loadCurrent();
     } else {
       return this._api.loadCurrent();
@@ -306,7 +307,7 @@ class DarkSkyApi {
     this.initialize();
     if (position) {
       return this._api
-        .setPosition(position)
+        .position(position)
         .loadForecast();
     } else {
       return this._api.loadForecast();
@@ -323,7 +324,7 @@ class DarkSkyApi {
     this.initialize();
     if (position) {
       return this._api
-        .setPosition(position)
+        .position(position)
         .loadItAll(excludesBlock);
     } else {
       return this._api.loadItAll(excludesBlock);

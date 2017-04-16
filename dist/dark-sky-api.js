@@ -57,6 +57,7 @@ var DarkSkyApi = function () {
           longitude = _ref.longitude;
 
       _this.darkSkyApi.latitude(latitude).longitude(longitude);
+      _this.initialized = true;
       return _this;
     };
 
@@ -361,7 +362,7 @@ var DarkSkyApi = function () {
     value: function loadCurrent(position) {
       this.initialize();
       if (position) {
-        return this._api.setPosition(position).loadCurrent();
+        return this._api.position(position).loadCurrent();
       } else {
         return this._api.loadCurrent();
       }
@@ -377,7 +378,7 @@ var DarkSkyApi = function () {
     value: function loadForecast(position) {
       this.initialize();
       if (position) {
-        return this._api.setPosition(position).loadForecast();
+        return this._api.position(position).loadForecast();
       } else {
         return this._api.loadForecast();
       }
@@ -395,7 +396,7 @@ var DarkSkyApi = function () {
     value: function loadItAll(excludesBlock, position) {
       this.initialize();
       if (position) {
-        return this._api.setPosition(position).loadItAll(excludesBlock);
+        return this._api.position(position).loadItAll(excludesBlock);
       } else {
         return this._api.loadItAll(excludesBlock);
       }
