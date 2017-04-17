@@ -149,10 +149,13 @@ To retrieve weather data for a specfic point in time use `loadTime`. See [docs](
 
 `DarkSkyApi.loadTime(position, time);`
 
+Time can be a [moment](https://momentjs.com/docs/) or a formatted date string.
+
 call with position
 
 ```javascript
-DarkSkyApi.loadTime({latitude: 15, longitude:-15}, '2000-04-06T12:20:05')
+const time = moment().year(2000).format('YYYY-MM-DDTHH:mm:ss')
+DarkSkyApi.loadTime({latitude: 15, longitude:-15}, time)
   .then(result => console.log(result));
 ```
 

@@ -23,6 +23,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var config = {
   storageKeyCurrent: 'weather-data-current',
   storageKeyForecast: 'weather-data-forecast',
+  dateFormat: 'YYYY-MM-DDTHH:mm:ss',
   errorMessage: {
     noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set',
     noTimeSupplied: 'No time supplied for time machine request'
@@ -73,8 +74,6 @@ var DarkSkyApi = function () {
     this._units = units || 'us';
     this._language = language || 'en';
     this._postProcessor = processor || null;
-    // this._time = time || null;
-    // this._extendHourly = extendHourly || null;
   }
 
   /**
@@ -155,13 +154,16 @@ var DarkSkyApi = function () {
 
     /**
      * Set time for timemachine request (loadTime)
-     * @param {*} time formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+     * @param {*} time moment or formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
      */
 
   }, {
     key: 'time',
     value: function time(_time) {
-      this._time = _time;
+      if (!_time) {
+        throw new Error(config.errorMessage.noTimeSupplied);
+      }
+      this._time = _moment2.default.isMoment(_time) ? _time.format(config.dateFormat) : _time;
     }
 
     /**
@@ -203,10 +205,10 @@ var DarkSkyApi = function () {
       return this.darkSkyApi.units(this._units).language(this._language).exclude(config.excludes.filter(function (val) {
         return val != 'daily';
       }).join(',')).extendHourly(this._extendHourly).get().then(function (data) {
-        data.daily.data = data.daily.data.map(function (item) {
+        !data.daily.data ? null : data.daily.data = data.daily.data.map(function (item) {
           return _this3.processWeatherItem(item);
         });
-        data.daily.updatedDateTime = (0, _moment2.default)();
+        !data.daily ? null : data.daily.updatedDateTime = (0, _moment2.default)();
         return data;
       });
     }
@@ -253,16 +255,12 @@ var DarkSkyApi = function () {
           return _this5.initialize(position).loadTime(time);
         });
       }
-      !time ? null : this._time = time;
-      if (!this._time) {
-        throw new Error(config.errorMessage.noTimeSupplied);
-      }
+      this.time(time);
       return this.darkSkyApi.units(this._units).language(this._language).extendHourly(this._extendHourly).time(this._time).get().then(function (data) {
         !data.currently ? null : data.currently = _this5.processWeatherItem(data.currently);
         !data.daily.data ? null : data.daily.data = data.daily.data.map(function (item) {
           return _this5.processWeatherItem(item);
         });
-        data.updatedDateTime = (0, _moment2.default)();
         return data;
       });
     }

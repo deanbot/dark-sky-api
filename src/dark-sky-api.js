@@ -5,6 +5,7 @@ import { getNavigatorCoords, degreeToCardinal } from 'geo-loc-utils';
 const config = {
   storageKeyCurrent: 'weather-data-current',
   storageKeyForecast: 'weather-data-forecast',
+  dateFormat: 'YYYY-MM-DDTHH:mm:ss',
   errorMessage: {
     noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set',
     noTimeSupplied: 'No time supplied for time machine request'
@@ -42,8 +43,6 @@ class DarkSkyApi {
     this._units = units || 'us';
     this._language = language || 'en';
     this._postProcessor = processor || null;
-    // this._time = time || null;
-    // this._extendHourly = extendHourly || null;
   }
 
   /**
@@ -114,10 +113,13 @@ class DarkSkyApi {
 
   /**
    * Set time for timemachine request (loadTime)
-   * @param {*} time formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+   * @param {*} time moment or formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
    */
   time(time) {
-    this._time = time;
+    if (!time) {
+      throw new Error(config.errorMessage.noTimeSupplied);
+    }
+    this._time = moment.isMoment(time) ? time.format(config.dateFormat) : time;
   }
 
   /**
@@ -151,8 +153,8 @@ class DarkSkyApi {
       .extendHourly(this._extendHourly)
       .get()
       .then((data) => {
-        data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
-        data.daily.updatedDateTime = moment();
+        !data.daily.data ? null : data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
+        !data.daily ? null : data.daily.updatedDateTime = moment();
         return data;
       });
   }
@@ -191,10 +193,7 @@ class DarkSkyApi {
       return this.loadPosition()
         .then(position => this.initialize(position).loadTime(time));
     }
-    !time ? null : this._time = time;
-    if (!this._time) {
-      throw new Error(config.errorMessage.noTimeSupplied);
-    }
+    this.time(time);
     return this.darkSkyApi
       .units(this._units)
       .language(this._language)
