@@ -6,7 +6,8 @@ const config = {
   storageKeyCurrent: 'weather-data-current',
   storageKeyForecast: 'weather-data-forecast',
   errorMessage: {
-    noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set'
+    noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set',
+    noTimeSupplied: 'No time supplied for time machine request'
   },
   warningMessage: {
     cantGuessUnits: 'Can\'t guess units. Defaulting to Imperial',
@@ -25,17 +26,24 @@ class DarkSkyApi {
   // initialized; weather the instance of dark sky api has lat and long set
   // _units;
   // _language;
+  // _time
+  // _extendHourly
   // _postProcessor
 
   /**
    * @param {string} apiKey - dark sky api key - consider using a proxy
    * @param {string} proxyUrl - make request behind proxy to hide api key
+   * @param {string} units
+   * @param {string} language
+   * @param {func} processor
    */
   constructor(apiKey, proxyUrl, units, language, processor) {
     this.darkSkyApi = new darkSkySkeleton(apiKey, proxyUrl);
     this._units = units || 'us';
     this._language = language || 'en';
     this._postProcessor = processor || null;
+    // this._time = time || null;
+    // this._extendHourly = extendHourly || null;
   }
 
   /**
@@ -97,6 +105,22 @@ class DarkSkyApi {
   }
 
   /**
+   * Set whether to extend forecast with additional hours
+   * @param {bool} extend
+   */
+  extendHourly(extend) {
+    this._extendHourly = extend;
+  }
+
+  /**
+   * Set time for timemachine request (loadTime)
+   * @param {*} time formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+   */
+  time(time) {
+    this._time = time;
+  }
+
+  /**
    * Get forecasted week of weather
    */
   loadCurrent() {
@@ -124,6 +148,7 @@ class DarkSkyApi {
       .units(this._units)
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'daily').join(','))
+      .extendHourly(this._extendHourly)
       .get()
       .then((data) => {
         data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
@@ -146,11 +171,39 @@ class DarkSkyApi {
       .units(this._units)
       .language(this._language)
       .exclude(excludesBlock)
+      .extendHourly(this._extendHourly)
       .get()
       .then((data) => {
         !data.currently ? null : data.currently = this.processWeatherItem(data.currently);
         !data.daily.data ? null : data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
         data.updatedDateTime = moment();
+        return data;
+      });
+  }
+
+  /**
+   * Time machine request
+   * @ref https://darksky.net/dev/docs/time-machine
+   * @param {*} [time] formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+   */
+  loadTime(time) {
+    if (!this.initialized) {
+      return this.loadPosition()
+        .then(position => this.initialize(position).loadTime(time));
+    }
+    !time ? null : this._time = time;
+    if (!this._time) {
+      throw new Error(config.errorMessage.noTimeSupplied);
+    }
+    return this.darkSkyApi
+      .units(this._units)
+      .language(this._language)
+      .extendHourly(this._extendHourly)
+      .time(this._time)
+      .get()
+      .then((data) => {
+        !data.currently ? null : data.currently = this.processWeatherItem(data.currently);
+        !data.daily.data ? null : data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
         return data;
       });
   }
@@ -276,6 +329,25 @@ class DarkSkyApi {
   }
 
   /**
+   * Set date time string for time machine requests
+   * @ref https://darksky.net/dev/docs/time-machine
+   * @param {string} time in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+   */
+  static setTime(time) {
+    this.initialize();
+    this._api.time(time);
+  }
+
+  /**
+   * Return hour-by-hour data for the next 168 hours, instead of the next 48. 
+   * @param {bool} extend whether to extend the request hours
+   */
+  static extendHourly(extend) {
+    this.initialize();
+    this._api.extendHourly(extend);
+  }
+
+  /**
    * Set post processor for weather items - accepts a weather data object as single parameter - initialize or configure with api key or proxy first - must return object
    * @param {function} func 
    */
@@ -328,6 +400,20 @@ class DarkSkyApi {
         .loadItAll(excludesBlock);
     } else {
       return this._api.loadItAll(excludesBlock);
+    }
+  }
+
+  static loadTime(position, time) {
+    this.initialize();
+    if (!time && !this._api._time) {
+      throw new Error(config.errorMessage.noTimeSupplied);
+    }
+    if (position) {
+      return this._api
+        .position(position)
+        .loadTime(time);
+    } else {
+      return this._api.loadTime(time);
     }
   }
 

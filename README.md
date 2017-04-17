@@ -38,7 +38,7 @@ DarkSkyApi.apiKey = 'your-dark-sky-api-key';
 DarkSkyApi.proxyUrl = '//base-url-to-proxy/service';
 
 // optional configuration
-DarkSkyApi.units = 'si'; // default 'us'
+DarkSkyApi.setUnits = 'si'; // default 'us'
 DarkSkyApi.language = 'de'; // default 'en'
 DarkSkyApi.postProcessor = (item) => { // default null;
   item.day = item.dateTime.format('ddd');
@@ -62,6 +62,12 @@ DarkSkyApi.loadForecast()
   .then(result => console.log(result));
 ```
 
+Specific time request:
+```javascript
+DarkSkyApi.loadTime('2000-04-06T12:20:05')
+  .then(result => console.log(result));
+```
+
 ### What about geo location?
 By default dark-sky-api will use [Geolocation.getCurrentPosition](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) to grab the current browser location automatically.
 
@@ -78,7 +84,7 @@ DarkSkyApi.loadCurrent(position)
 
 ### Response units
 
-To get the units used in dark sky api responses per configured unit type (default is 'us') use GetResponseUnits after configuration. Keep in mind that the units would need to be retrieved again if you changed the api units.
+To get the units used in dark sky api responses per configured unit type (default is 'us') use `GetResponseUnits` after configuration. Keep in mind that the units would need to be retrieved again if you changed the api units.
 
 ```javascript
 const responseUnits = DarkSkyApi.getResponseUnits();
@@ -87,6 +93,20 @@ DarkSkyAPi.loadCurrent()
     console.log(`The temperature is ${data.temperature} degrees ${responseUnits.temperature}`);
     console.log(`The wind speed is ${data.windSpeed} ${responseUnits.windSpeed}`);
   });
+```
+
+### Extend Hourly
+
+Use `extendHourly` to return hour-by-hour data for the next 168 hours, instead of the next 48.
+
+```javascript
+// turn on
+DarkSkyApi.extendHourly(true);
+DarkSkyApi.loadForecast()
+  .then(console.log);
+
+// turn off
+DarkSkyApi.extendHourly(false); 
 ```
 
 ### Post Processor
@@ -121,6 +141,34 @@ DarkSkyApi.postProcessor = (item) => { // must accept weather data item param
 // use 
 DarkSkyApi.loadCurrent()
   .then(data => console.log(data.dayNice)); // Today
+```
+
+### Time Machine request
+
+To retrieve weather data for a specfic point in time use `loadTime`. See [docs](https://darksky.net/dev/docs/time-machine) for more info.
+
+`DarkSkyApi.loadTime(position, time);`
+
+call with position
+
+```javascript
+DarkSkyApi.loadTime({latitude: 15, longitude:-15}, '2000-04-06T12:20:05')
+  .then(result => console.log(result));
+```
+
+call without position
+
+```javascript
+DarkSkyApi.loadTime(false, '2000-04-06T12:20:05')
+  .then(result => console.log(result));
+```
+
+or set time and call without time
+
+```javascript
+DarkSkyApi.setTime('2000-04-06T12:20:05');
+DarkSkyApi.loadTime()
+  .then(result => console.log(result));
 ```
 
 ### Hourly, Minutely, Alerts, and Flags
@@ -169,7 +217,7 @@ DarkSkyApi.initialize(apiKey, proxyUrl, units, language, postProcessor); // only
 
 #### Change/set configuration after initialization/use
 
-It's possible to change units, language, and postProcessor after initialization. Note: calling any of the static `set[Config]` methods will initialize the api so make sure you've added a proxy url or api call before using them.
+It's possible to change units, language, postProcessor, extendHourly, and time after initialization. Note: calling any of the static `set[Config]` methods will initialize the api so make sure you've added a proxy url or api call before using them.
 
 ```javascript
 DarkSkyApi.apiKey = 'my-api-key';
@@ -184,6 +232,10 @@ DarkSkyApi.setPostProcessor((item) => {
     icon: item.icon
   };
 });
+
+// can only be set after initialization
+DarkSkyApi.setTime('2000-04-06T12:20:05');
+DarkSkyApi.extendHourly(true);
 ```
 
 ### Creating an instance
@@ -204,21 +256,41 @@ api.units('us')
   .loadCurrent()
   .then(console.log);
 
+// extend hourly available for forecasts
+api.extendHourly(true)
+  .loadForecast()
+  .then(console.log);
+
+// turn off extend hourly
+api.extendHourly(false)
+  .loadForecast()
+  .then(console.log);
+
 // change position
 position = {
   latitude: 43.075284, 
   longitude: -89.384318
 };
-api.position(position);
+api.position(position)
+  .loadCurrent()
+  .then(console.log);
 
 // change back
 api.loadPositionAsync() // get current position
   .then(position => api.position(position));
+
+// time machine request
+api.time('2000-04-06T12:20:05')
+  .loadTime()
+  .then(console.log);
+
+// or 
+api.loadTime('2000-04-06T12:20:05')
+  .then(console.log)
 ```
 
 #### To Do 
 
 * add hourly and minutely api methods
 * add flags and alerts api methods
-* add extend hourly option
 * add tests

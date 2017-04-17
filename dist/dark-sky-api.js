@@ -24,7 +24,8 @@ var config = {
   storageKeyCurrent: 'weather-data-current',
   storageKeyForecast: 'weather-data-forecast',
   errorMessage: {
-    noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set'
+    noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set',
+    noTimeSupplied: 'No time supplied for time machine request'
   },
   warningMessage: {
     cantGuessUnits: 'Can\'t guess units. Defaulting to Imperial',
@@ -41,11 +42,16 @@ var DarkSkyApi = function () {
   // initialized; weather the instance of dark sky api has lat and long set
   // _units;
   // _language;
+  // _time
+  // _extendHourly
   // _postProcessor
 
   /**
    * @param {string} apiKey - dark sky api key - consider using a proxy
    * @param {string} proxyUrl - make request behind proxy to hide api key
+   * @param {string} units
+   * @param {string} language
+   * @param {func} processor
    */
   function DarkSkyApi(apiKey, proxyUrl, units, language, processor) {
     var _this = this;
@@ -67,6 +73,8 @@ var DarkSkyApi = function () {
     this._units = units || 'us';
     this._language = language || 'en';
     this._postProcessor = processor || null;
+    // this._time = time || null;
+    // this._extendHourly = extendHourly || null;
   }
 
   /**
@@ -135,6 +143,28 @@ var DarkSkyApi = function () {
     }
 
     /**
+     * Set whether to extend forecast with additional hours
+     * @param {bool} extend
+     */
+
+  }, {
+    key: 'extendHourly',
+    value: function extendHourly(extend) {
+      this._extendHourly = extend;
+    }
+
+    /**
+     * Set time for timemachine request (loadTime)
+     * @param {*} time formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+     */
+
+  }, {
+    key: 'time',
+    value: function time(_time) {
+      this._time = _time;
+    }
+
+    /**
      * Get forecasted week of weather
      */
 
@@ -172,7 +202,7 @@ var DarkSkyApi = function () {
       }
       return this.darkSkyApi.units(this._units).language(this._language).exclude(config.excludes.filter(function (val) {
         return val != 'daily';
-      }).join(',')).get().then(function (data) {
+      }).join(',')).extendHourly(this._extendHourly).get().then(function (data) {
         data.daily.data = data.daily.data.map(function (item) {
           return _this3.processWeatherItem(item);
         });
@@ -197,10 +227,40 @@ var DarkSkyApi = function () {
           return _this4.initialize(position).loadItAll(excludesBlock);
         });
       }
-      return this.darkSkyApi.units(this._units).language(this._language).exclude(excludesBlock).get().then(function (data) {
+      return this.darkSkyApi.units(this._units).language(this._language).exclude(excludesBlock).extendHourly(this._extendHourly).get().then(function (data) {
         !data.currently ? null : data.currently = _this4.processWeatherItem(data.currently);
         !data.daily.data ? null : data.daily.data = data.daily.data.map(function (item) {
           return _this4.processWeatherItem(item);
+        });
+        data.updatedDateTime = (0, _moment2.default)();
+        return data;
+      });
+    }
+
+    /**
+     * Time machine request
+     * @ref https://darksky.net/dev/docs/time-machine
+     * @param {*} [time] formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+     */
+
+  }, {
+    key: 'loadTime',
+    value: function loadTime(time) {
+      var _this5 = this;
+
+      if (!this.initialized) {
+        return this.loadPosition().then(function (position) {
+          return _this5.initialize(position).loadTime(time);
+        });
+      }
+      !time ? null : this._time = time;
+      if (!this._time) {
+        throw new Error(config.errorMessage.noTimeSupplied);
+      }
+      return this.darkSkyApi.units(this._units).language(this._language).extendHourly(this._extendHourly).time(this._time).get().then(function (data) {
+        !data.currently ? null : data.currently = _this5.processWeatherItem(data.currently);
+        !data.daily.data ? null : data.daily.data = data.daily.data.map(function (item) {
+          return _this5.processWeatherItem(item);
         });
         data.updatedDateTime = (0, _moment2.default)();
         return data;
@@ -341,6 +401,31 @@ var DarkSkyApi = function () {
     }
 
     /**
+     * Set date time string for time machine requests
+     * @ref https://darksky.net/dev/docs/time-machine
+     * @param {string} time in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+     */
+
+  }, {
+    key: 'setTime',
+    value: function setTime(time) {
+      this.initialize();
+      this._api.time(time);
+    }
+
+    /**
+     * Return hour-by-hour data for the next 168 hours, instead of the next 48. 
+     * @param {bool} extend whether to extend the request hours
+     */
+
+  }, {
+    key: 'extendHourly',
+    value: function extendHourly(extend) {
+      this.initialize();
+      this._api.extendHourly(extend);
+    }
+
+    /**
      * Set post processor for weather items - accepts a weather data object as single parameter - initialize or configure with api key or proxy first - must return object
      * @param {function} func 
      */
@@ -399,6 +484,19 @@ var DarkSkyApi = function () {
         return this._api.position(position).loadItAll(excludesBlock);
       } else {
         return this._api.loadItAll(excludesBlock);
+      }
+    }
+  }, {
+    key: 'loadTime',
+    value: function loadTime(position, time) {
+      this.initialize();
+      if (!time && !this._api._time) {
+        throw new Error(config.errorMessage.noTimeSupplied);
+      }
+      if (position) {
+        return this._api.position(position).loadTime(time);
+      } else {
+        return this._api.loadTime(time);
       }
     }
 
