@@ -82,6 +82,16 @@ DarkSkyApi.loadCurrent(position)
   .then(result => console.log(result));
 ```
 
+Retrieve the current location from the browser
+
+```javascript
+let position;
+DarkSkyApi.loadPosition()
+  .then(pos => {
+    position = pos;
+  });
+```
+
 ### Response units
 
 To get the units used in dark sky api responses per configured unit type (default is 'us') use `GetResponseUnits` after configuration. Keep in mind that the units would need to be retrieved again if you changed the api units.
