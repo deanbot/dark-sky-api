@@ -246,7 +246,10 @@ const api = new DarkSkyApi(apiKey, proxyUrl, units, language, processor); // onl
 // instance config methods support method chaining
 api.units('us')
   .language('en')
-  .postProcessor(item => item)
+  .postProcessor(item => {
+    item.newProp = val;
+    return item;
+  })
   .loadCurrent()
   .then(console.log);
 
