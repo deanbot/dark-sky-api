@@ -211,7 +211,7 @@ DarkSkyApi.initialize(apiKey, proxyUrl, units, language, postProcessor); // only
 
 #### Change/set configuration after initialization/use
 
-It's possible to change units, language, postProcessor, extendHourly, and time after initialization. Note: calling any of the static `set[Config]` methods will initialize the api so make sure you've added a proxy url or api call before using them.
+It's possible to change units, language, postProcessor, extendHourly, and time after initialization. Note: calling any of the static `set[Config]` methods will initialize the api so make sure you've added a proxy url or api key before using them.
 
 ```javascript
 DarkSkyApi.apiKey = 'my-api-key';
