@@ -151,25 +151,16 @@ To retrieve weather data for a specfic point in time use `loadTime`. See [docs](
 
 Time can be a [moment](https://momentjs.com/docs/) or a formatted date string.
 
-call with position
-
 ```javascript
-const time = moment().year(2000).format('YYYY-MM-DDTHH:mm:ss')
-DarkSkyApi.loadTime({latitude: 15, longitude:-15}, time)
+const time = moment().year(2000);
+DarkSkyApi.loadTime(time)
   .then(result => console.log(result));
 ```
 
-call without position
+use `setTime` and call without time parameter
 
 ```javascript
-DarkSkyApi.loadTime(false, '2000-04-06T12:20:05')
-  .then(result => console.log(result));
-```
-
-or set time and call without time
-
-```javascript
-DarkSkyApi.setTime('2000-04-06T12:20:05');
+DarkSkyApi.setTime('2000-04-06T12:20:05'); // moment().year(2000).format('YYYY-MM-DDTHH:mm:ss')
 DarkSkyApi.loadTime()
   .then(result => console.log(result));
 ```
@@ -178,13 +169,13 @@ DarkSkyApi.loadTime()
 
 To retrieve any of these results use loadItAll with optional excludesBlock. ExcludesBlock indicates which data points to omit.
 
+`DarkSkyApi.loadItAll(excludes, position);`
+
 ```javascript
 DarkSkyApi.loadItAll()
   .then(console.log);
 
 DarkSkyApi.loadItAll('daily,hourly,minutely,flags') // just return alerts
-
-DarkSkyApi.loadItAll(excludes, position); // explicit position is second argument
 ```
 
 ### Initialization / Configuration
@@ -294,6 +285,7 @@ api.loadTime('2000-04-06T12:20:05')
 
 #### To Do 
 
+* add position validation
 * add hourly and minutely api methods
 * add flags and alerts api methods
 * add tests

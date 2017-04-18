@@ -402,7 +402,7 @@ class DarkSkyApi {
     }
   }
 
-  static loadTime(position, time) {
+  static loadTime(time, position) {
     this.initialize();
     if (!time && !this._api._time) {
       throw new Error(config.errorMessage.noTimeSupplied);

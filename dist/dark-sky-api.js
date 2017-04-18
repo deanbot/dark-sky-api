@@ -486,7 +486,7 @@ var DarkSkyApi = function () {
     }
   }, {
     key: 'loadTime',
-    value: function loadTime(position, time) {
+    value: function loadTime(time, position) {
       this.initialize();
       if (!time && !this._api._time) {
         throw new Error(config.errorMessage.noTimeSupplied);
