@@ -135,7 +135,7 @@ DarkSkyApi.postProcessor = (item) => { // must accept weather data item param
   // add units object onto item
   item.units = DarkSkyApi.getResponseUnits(); // this would be outdated if you changed api units later
 
-  return item; // must return weather dat item
+  return item; // must return weather data item
 };
 
 // use 
