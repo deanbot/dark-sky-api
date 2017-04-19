@@ -157,7 +157,7 @@ DarkSkyApi.loadCurrent()
 
 To retrieve weather data for a specfic point in time use `loadTime`. See [docs](https://darksky.net/dev/docs/time-machine) for more info.
 
-`DarkSkyApi.loadTime(position, time);`
+`DarkSkyApi.loadTime(time, position);`
 
 Time can be a [moment](https://momentjs.com/docs/) or a formatted date string.
 
