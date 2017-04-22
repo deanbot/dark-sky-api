@@ -38,7 +38,7 @@ DarkSkyApi.apiKey = 'your-dark-sky-api-key';
 DarkSkyApi.proxyUrl = '//base-url-to-proxy/service';
 
 // optional configuration
-DarkSkyApi.setUnits = 'si'; // default 'us'
+DarkSkyApi.units = 'si'; // default 'us'
 DarkSkyApi.language = 'de'; // default 'en'
 DarkSkyApi.postProcessor = (item) => { // default null;
   item.day = item.dateTime.format('ddd');
