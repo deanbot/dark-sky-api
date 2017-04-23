@@ -176,8 +176,14 @@ class DarkSkyApi {
       .extendHourly(this._extendHourly)
       .get()
       .then((data) => {
+        // process current block
         !data.currently ? null : data.currently = this.processWeatherItem(data.currently);
-        !data.daily.data ? null : data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
+
+        // process daily block
+        if (data.daily) {
+          !data.daily.data ? null : data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
+        }
+
         data.updatedDateTime = moment();
         return data;
       });

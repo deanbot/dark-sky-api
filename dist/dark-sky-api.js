@@ -230,10 +230,16 @@ var DarkSkyApi = function () {
         });
       }
       return this.darkSkyApi.units(this._units).language(this._language).exclude(excludesBlock).extendHourly(this._extendHourly).get().then(function (data) {
+        // process current block
         !data.currently ? null : data.currently = _this4.processWeatherItem(data.currently);
-        !data.daily.data ? null : data.daily.data = data.daily.data.map(function (item) {
-          return _this4.processWeatherItem(item);
-        });
+
+        // process daily block
+        if (data.daily) {
+          !data.daily.data ? null : data.daily.data = data.daily.data.map(function (item) {
+            return _this4.processWeatherItem(item);
+          });
+        }
+
         data.updatedDateTime = (0, _moment2.default)();
         return data;
       });
