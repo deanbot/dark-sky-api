@@ -160,9 +160,6 @@ var DarkSkyApi = function () {
   }, {
     key: 'time',
     value: function time(_time) {
-      if (!_time) {
-        throw new Error(config.errorMessage.noTimeSupplied);
-      }
       this._time = _moment2.default.isMoment(_time) ? _time.format(config.dateFormat) : _time;
     }
 

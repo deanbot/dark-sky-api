@@ -116,9 +116,6 @@ class DarkSkyApi {
    * @param {*} time moment or formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
    */
   time(time) {
-    if (!time) {
-      throw new Error(config.errorMessage.noTimeSupplied);
-    }
     this._time = moment.isMoment(time) ? time.format(config.dateFormat) : time;
   }
 
