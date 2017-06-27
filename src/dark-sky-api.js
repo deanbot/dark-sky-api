@@ -60,7 +60,7 @@ class DarkSkyApi {
    * Set dark sky api position data - Chainable
    * @param {object} position - containing geo latitude and longitude
    */
-  position = ({ latitude, longitude }) => {
+  position({ latitude, longitude }) {
     this.darkSkyApi
       .latitude(latitude)
       .longitude(longitude);
@@ -94,6 +94,10 @@ class DarkSkyApi {
     return this;
   }
 
+  time() {
+    console.warn('dark-sky-api: The \'time\' method is deprecated. Pass your time to loadTime');
+  }
+
   /**
    * Add a post processor for weather items - accepts a weather data object as single parameter - must return object
    * @param {function} func 
@@ -112,14 +116,6 @@ class DarkSkyApi {
   }
 
   /**
-   * Set time for timemachine request (loadTime)
-   * @param {*} time moment or formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
-   */
-  time(time) {
-    this._time = moment.isMoment(time) ? time.format(config.dateFormat) : time;
-  }
-
-  /**
    * Get forecasted week of weather
    */
   loadCurrent() {
@@ -131,6 +127,7 @@ class DarkSkyApi {
       .units(this._units)
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'currently').join(','))
+      .time(false)
       .get()
       .then(({ currently }) => this.processWeatherItem(currently));
   }
@@ -148,6 +145,7 @@ class DarkSkyApi {
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'daily').join(','))
       .extendHourly(this._extendHourly)
+      .time(false)
       .get()
       .then((data) => {
         !data.daily.data ? null : data.daily.data = data.daily.data.map(item => this.processWeatherItem(item));
@@ -171,6 +169,7 @@ class DarkSkyApi {
       .language(this._language)
       .exclude(excludesBlock)
       .extendHourly(this._extendHourly)
+      .time(false)
       .get()
       .then((data) => {
         // process current block
@@ -196,12 +195,15 @@ class DarkSkyApi {
       return this.loadPosition()
         .then(position => this.initialize(position).loadTime(time));
     }
-    this.time(time);
+    if (!time) {
+      throw new Error(config.errorMessage.noTimeSupplied);
+    }
+    time = moment.isMoment(time) ? time.format(config.dateFormat) : time;
     return this.darkSkyApi
       .units(this._units)
       .language(this._language)
       .extendHourly(this._extendHourly)
-      .time(this._time)
+      .time(time)
       .get()
       .then((data) => {
         !data.currently ? null : data.currently = this.processWeatherItem(data.currently);
@@ -265,7 +267,9 @@ class DarkSkyApi {
   /**
    *  Get browser navigator coords - Promise
    */
-  loadPosition = DarkSkyApi.loadPosition;
+  loadPosition() {
+    return DarkSkyApi.loadPosition();
+  }
 
   static _api;
 
@@ -331,16 +335,6 @@ class DarkSkyApi {
   }
 
   /**
-   * Set date time string for time machine requests
-   * @ref https://darksky.net/dev/docs/time-machine
-   * @param {string} time in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
-   */
-  static setTime(time) {
-    this.initialize();
-    this._api.time(time);
-  }
-
-  /**
    * Return hour-by-hour data for the next 168 hours, instead of the next 48. 
    * @param {bool} extend whether to extend the request hours
    */
@@ -388,6 +382,10 @@ class DarkSkyApi {
     }
   }
 
+  static setTime() {
+    console.warn('dark-sky-api: The \'setTime\' method is deprecated. Pass your time to loadTime');
+  }
+
   /** 
    * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
    * daily and currently are processed if returned
@@ -407,7 +405,7 @@ class DarkSkyApi {
 
   static loadTime(time, position) {
     this.initialize();
-    if (!time && !this._api._time) {
+    if (!time) {
       throw new Error(config.errorMessage.noTimeSupplied);
     }
     if (position) {

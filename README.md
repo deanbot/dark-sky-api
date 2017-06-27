@@ -163,15 +163,7 @@ Time can be a [moment](https://momentjs.com/docs/) or a formatted date string.
 
 ```javascript
 const time = moment().year(2000);
-DarkSkyApi.loadTime(time)
-  .then(result => console.log(result));
-```
-
-use `setTime` and call without time parameter
-
-```javascript
-DarkSkyApi.setTime('2000-04-06T12:20:05'); // moment().year(2000).format('YYYY-MM-DDTHH:mm:ss')
-DarkSkyApi.loadTime()
+DarkSkyApi.loadTime(time) // or '2000-04-06T12:20:05' aka moment.format()
   .then(result => console.log(result));
 ```
 
@@ -238,7 +230,6 @@ DarkSkyApi.setPostProcessor((item) => {
 });
 
 // can only be set after initialization
-DarkSkyApi.setTime('2000-04-06T12:20:05');
 DarkSkyApi.extendHourly(true);
 ```
 
@@ -287,11 +278,6 @@ api.loadPositionAsync() // get current position
   .then(position => api.position(position));
 
 // time machine request
-api.time('2000-04-06T12:20:05')
-  .loadTime()
-  .then(console.log);
-
-// or 
 api.loadTime('2000-04-06T12:20:05')
   .then(console.log)
 ```
