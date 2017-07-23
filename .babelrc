@@ -1,8 +1,9 @@
 {
   "presets": [
-    "stage-1"
+    "env"
   ],
   "plugins": [
+    "add-module-exports",
     "transform-class-properties"
   ]
 }
