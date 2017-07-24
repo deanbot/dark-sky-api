@@ -1,6 +1,6 @@
 {
   "name": "dark-sky-api",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "a simple and robust dark sky api service for client-side js",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "jest": "^19.0.2"
   },
   "dependencies": {
-    "dark-sky-skeleton": "^0.1.41",
+    "dark-sky-skeleton": "^0.1.43",
     "geo-loc-utils": "^0.0.2",
     "moment": "^2.18.1"
   }

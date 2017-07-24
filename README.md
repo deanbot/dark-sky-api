@@ -26,6 +26,11 @@ Need something even smaller? Dark sky api uses [dark-sky-skeleton](https://githu
 import DarkSkyApi from 'dark-sky-api';
 ```
 
+or server side
+```javascript
+const DarkSkyApi = require('dark-sky-api');
+```
+
 ### Configure it statically (suggested)
 
 Configuring dark-sky-api with an api key is supported but each request will expose said api key (for anyone to capture). 
@@ -35,7 +40,7 @@ For this reason Dark Sky strongly suggests hiding your API key through use of a 
 ```javascript
 // one of the two is required
 DarkSkyApi.apiKey = 'your-dark-sky-api-key';
-DarkSkyApi.proxyUrl = '//base-url-to-proxy/service';
+DarkSkyApi.proxyUrl = '//base-url-to-proxy/service'; // or set to true if running server side
 
 // optional configuration
 DarkSkyApi.units = 'si'; // default 'us'

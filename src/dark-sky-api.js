@@ -7,7 +7,7 @@ const config = {
   storageKeyForecast: 'weather-data-forecast',
   dateFormat: 'YYYY-MM-DDTHH:mm:ss',
   errorMessage: {
-    noApiKeyOrProxyUrl: 'No Dark Sky api key set and no proxy url set',
+    noApiKeyOrProxy: 'No Dark Sky api key set and no proxy url set',
     noTimeSupplied: 'No time supplied for time machine request'
   },
   warningMessage: {
@@ -33,13 +33,13 @@ class DarkSkyApi {
 
   /**
    * @param {string} apiKey - dark sky api key - consider using a proxy
-   * @param {string} proxyUrl - make request behind proxy to hide api key
+   * @param {string|boolean} proxy - make request behind proxy to hide api key or set to true to indicate caller is server-side
    * @param {string} units
    * @param {string} language
    * @param {func} processor
    */
-  constructor(apiKey, proxyUrl, units, language, processor) {
-    this.darkSkyApi = new darkSkySkeleton(apiKey, proxyUrl);
+  constructor(apiKey, proxy, units, language, processor) {
+    this.darkSkyApi = new darkSkySkeleton(apiKey, proxy);
     this._units = units || 'us';
     this._language = language || 'en';
     this._postProcessor = processor || null;
@@ -128,8 +128,9 @@ class DarkSkyApi {
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'currently').join(','))
       .time(false)
-      .get()
-      .then(({ currently }) => this.processWeatherItem(currently));
+      .get();
+    // .then(res => console.log(result))
+    // .then(({ currently }) => this.processWeatherItem(currently));
   }
 
   /**
@@ -275,7 +276,7 @@ class DarkSkyApi {
 
   // allow config and deferring of initialization
   static apiKey;
-  static proxyUrl;
+  static proxy;
   static units;
   static language;
   static postProcessor;
@@ -288,23 +289,23 @@ class DarkSkyApi {
   /**
    * Initialize a static instance of weather api with dark sky api key
    * @param {string} apiKey 
-   * @param {string} proxyUrl 
+   * @param {string|boolean} proxy 
    */
-  static initialize(apiKey, proxyUrl, units, language, postProcessor) {
+  static initialize(apiKey, proxy, units, language, postProcessor) {
     if (this._api) {
       return;
     }
 
-    if (!this.apiKey && !this.proxyUrl && !apiKey && !proxyUrl) {
-      throw new Error(config.errorMessage.noApiKeyOrProxyUrl);
+    if (!this.apiKey && !this.proxy && !apiKey && !proxy) {
+      throw new Error(config.errorMessage.noApiKeyOrProxy);
     }
 
     const key = apiKey || this.apiKey || '';
-    const proxy = proxyUrl || this.proxyUrl || '';
+    const proxyService = proxy || this.proxy || '';
     const unit = units || this.units || '';
     const lang = language || this.language || '';
     const processor = postProcessor || this.postProcessor || null;
-    this._api = new DarkSkyApi(key, proxy, unit, lang, processor);
+    this._api = new DarkSkyApi(key, proxyService, unit, lang, processor);
   }
 
   /**
