@@ -1,48 +1,76 @@
 # dark-sky-api
 
-A simple and robust wrapper library for Dark Sky API (previously known as Forecast.io). 
+A simple and robust isomorphic js wrapper library for Dark Sky API (previously known as Forecast.io). 
 
 Features:
 
 * Simple to use.
 * Promise based (es6-promises).
 * Lightweight browser location checking (by default).
+* Isomorphic - use it client-side or server-side.
 * Versatile - use it statically or instantiate it.
 * Dates returned as [moments](https://momentjs.com/).
 * Excludes are used automatically to reduce latency and save cache space ([see 'Request Parameters'](https://darksky.net/dev/docs/forecast)).
 
 See Dark Sky developer docs: [https://darksky.net/dev/docs](https://darksky.net/dev/docs).
 
-Need something even smaller? Dark sky api uses [dark-sky-skeleton](https://github.com/deanbot/dark-sky-skeleton).
+Need something even smaller? dark-sky-api uses [dark-sky-skeleton](https://github.com/deanbot/dark-sky-skeleton).
 
-### Install it
+You can use dark-sky-api client-side __OR__ server-side. Note: an example of a server side proxy used with client side dark-sky-api is forthecoming...
+
+## Install it
 
 ```
  npm install dark-sky-api
 ```
 
-### Require it
+## Import it
 ```javascript
 import DarkSkyApi from 'dark-sky-api';
 ```
 
-or server side
+or Common JS
+
 ```javascript
 const DarkSkyApi = require('dark-sky-api');
 ```
 
-### Configure it statically (suggested)
+## Configure it 
 
-Configuring dark-sky-api with an api key is supported but each request will expose said api key (for anyone to capture). 
-
-For this reason Dark Sky strongly suggests hiding your API key through use of a proxy [[ref](https://darksky.net/dev/docs/faq#cross-origin)].
+Static configuration is suggested.
 
 ```javascript
-// one of the two is required
 DarkSkyApi.apiKey = 'your-dark-sky-api-key';
-DarkSkyApi.proxyUrl = '//base-url-to-proxy/service'; // or set to true if running server side
+```
 
-// optional configuration
+### Proxy URL - Client-side be warned!
+
+The above is simple and great for testing, but your api key is exposed in every request (when running in client-side). Using a separate server-side proxy to make the actual api call to dark sky is highly suggested as this hides the api key. [[ref](https://darksky.net/dev/docs/faq#cross-origin)]. 
+
+To use a proxy set your api-key to false or an empty string, and pass the URL of the proxy service as the proxy (second) param.
+
+```javascript
+DarkSkyApi.proxy = '//base-url-to-proxy/service'; 
+```
+
+#### Experimental (help wanted)
+
+dark-sky-api theoretically supports a proxy service (aka untested). A proxy service would receive a request issued by dark-sky-api, attach this query to a base URI (like the following: `https://api.darksky.net/forecast/your-api-key`), and return a final request.
+
+### Running Server Side
+
+Along with your api key, set proxy to true.
+
+```javascript
+DarkSkyApi.apiKey = 'your-dark-sky-api-key';
+DarkSkyApi.proxy = true; 
+```
+
+Passing true as the proxy parameter indicates that the caller is server-side. Awesome!
+
+### Optional Configuration
+
+```javascript
 DarkSkyApi.units = 'si'; // default 'us'
 DarkSkyApi.language = 'de'; // default 'en'
 DarkSkyApi.postProcessor = (item) => { // default null;
@@ -51,7 +79,7 @@ DarkSkyApi.postProcessor = (item) => { // default null;
 }
 ```
 
-### Use it
+## Use it
 
 Today's weather:
 
@@ -68,15 +96,16 @@ DarkSkyApi.loadForecast()
 ```
 
 Specific time request:
+
 ```javascript
 DarkSkyApi.loadTime('2000-04-06T12:20:05')
   .then(result => console.log(result));
 ```
 
-### What about geo location?
-By default dark-sky-api will use [Geolocation.getCurrentPosition](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) to grab the current browser location automatically.
+## What about geo location?
+By default dark-sky-api will use [Geolocation.getCurrentPosition](https://developer.mozilla.org/en-US/docs/Web/api/Geolocation/getCurrentPosition) to grab the current browser location automatically.
 
-To manually set geolocation position pass along a position object:
+To manually set geolocation position pass along a position object. __This is mandatory when running dark-sky-api server-side!__
 
 ```javascript
 const position = {
@@ -97,7 +126,7 @@ DarkSkyApi.loadPosition()
   });
 ```
 
-### Response units
+## Response units
 
 To get the units used in dark sky api responses per configured unit type (default is 'us') use `GetResponseUnits` after configuration. Keep in mind that the units would need to be retrieved again if you changed the api units.
 
@@ -110,7 +139,7 @@ DarkSkyAPi.loadCurrent()
   });
 ```
 
-### Extend Hourly
+## Extend Hourly
 
 Use `extendHourly` to return hour-by-hour data for the next 168 hours, instead of the next 48.
 
@@ -124,7 +153,7 @@ DarkSkyApi.loadForecast()
 DarkSkyApi.extendHourly(false); 
 ```
 
-### Post Processor
+## Post Processor
 
 The post processor method is mapped to all weather items. It's an easy way to add or manipulate responses for an app.
 
@@ -158,7 +187,7 @@ DarkSkyApi.loadCurrent()
   .then(data => console.log(data.dayNice)); // Today
 ```
 
-### Time Machine request
+## Time Machine request
 
 To retrieve weather data for a specfic point in time use `loadTime`. See [docs](https://darksky.net/dev/docs/time-machine) for more info.
 
@@ -172,7 +201,7 @@ DarkSkyApi.loadTime(time) // or '2000-04-06T12:20:05' aka moment.format()
   .then(result => console.log(result));
 ```
 
-### Hourly, Minutely, Alerts, and Flags
+## Hourly, Minutely, Alerts, and Flags
 
 To retrieve any of these results use loadItAll with optional excludesBlock. ExcludesBlock indicates which data points to omit.
 
@@ -185,60 +214,7 @@ DarkSkyApi.loadItAll()
 DarkSkyApi.loadItAll('daily,hourly,minutely,flags') // just return alerts
 ```
 
-### Initialization / Configuration
-
-Tldr: Initialization of the api is automatic, but configure before making api calls.
-
-Static configuration settings such as apiKey, proxyUrl, units, language, and postProcessor are set prior to initialization (configuration phase), locked in during initalization (implicit or explicit), and can be changed after initialization.
-
-*Implicit (suggested)*
-
-This happens automatically when making a method call such as loadCurrent, loadForecast or loadItAll. Remember to configure beforehand.
-
-```javascript
-// configuration code 
-DarkSkyApi.apiKey = 'my-api-key';
-
-// api call somewhere else
-DarkSkyApi.loadCurrent(); // initialized automatically
-```
-
-*Explicit*
-
-```javascript
-DarkSkyApi.apiKey = 'my-api-key';
-DarkSkyApi.initialize();
-```
-
-or
-
-```javascript
-DarkSkyApi.initialize(apiKey, proxyUrl, units, language, postProcessor); // only apiKey or proxyUrl are required
-```
-
-#### Change/set configuration after initialization/use
-
-It's possible to change units, language, postProcessor, extendHourly, and time after initialization. Note: calling any of the static `set[Config]` methods will initialize the api so make sure you've added a proxy url or api key before using them.
-
-```javascript
-DarkSkyApi.apiKey = 'my-api-key';
-DarkSkyApi.loadCurrent();
-
-// config after initialization
-DarkSkyApi.setUnits('auto');
-DarkSkyApi.setLanguage('x-pig-latin');
-DarkSkyApi.setPostProcessor((item) => { 
-  return {
-    temperature: item.temperatureMax || item.temperature,
-    icon: item.icon
-  };
-});
-
-// can only be set after initialization
-DarkSkyApi.extendHourly(true);
-```
-
-### Creating an instance
+## Creating an instance
 
 If you need to maintain multiple instances (configurations) of dark-sky-api create an instance.
 
@@ -247,7 +223,7 @@ If you need to maintain multiple instances (configurations) of dark-sky-api crea
 import DarkSkyApi from 'dark-sky-api';
 
 // instantiate
-const api = new DarkSkyApi(apiKey, proxyUrl, units, language, processor); // only apiKey or proxyUrl are required
+const api = new DarkSkyApi(apiKey, proxy, units, language, processor); // only apiKey or proxy are required
 
 // instance config methods support method chaining
 api.units('us')
@@ -285,6 +261,59 @@ api.loadPositionAsync() // get current position
 // time machine request
 api.loadTime('2000-04-06T12:20:05')
   .then(console.log)
+```
+
+## Initialization / Configuration
+
+Tldr: Initialization of the api is automatic, but configure before making api calls.
+
+Static configuration settings such as apiKey, proxy, units, language, and postProcessor are set prior to initialization (configuration phase), locked in during initalization (implicit or explicit), and can be changed after initialization.
+
+*Implicit (suggested)*
+
+This happens automatically when making a method call such as loadCurrent, loadForecast, loadTime or loadItAll. Remember to configure beforehand.
+
+```javascript
+// configuration code 
+DarkSkyApi.apiKey = 'my-api-key';
+
+// api call somewhere else
+DarkSkyApi.loadCurrent(); // initialized automatically
+```
+
+*Explicit*
+
+```javascript
+DarkSkyApi.apiKey = 'my-api-key';
+DarkSkyApi.initialize();
+```
+
+or
+
+```javascript
+DarkSkyApi.initialize(apiKey, proxy, units, language, postProcessor); // only apiKey or proxy are required
+```
+
+### Change/set configuration after initialization/use
+
+It's possible to change units, language, postProcessor, extendHourly, and time after initialization. Note: calling any of the static `set[Config]` methods will initialize the api so make sure you've added an api key or proxy before using them.
+
+```javascript
+DarkSkyApi.apiKey = 'my-api-key';
+DarkSkyApi.loadCurrent();
+
+// config after initialization
+DarkSkyApi.setUnits('auto');
+DarkSkyApi.setLanguage('x-pig-latin');
+DarkSkyApi.setPostProcessor((item) => { 
+  return {
+    temperature: item.temperatureMax || item.temperature,
+    icon: item.icon
+  };
+});
+
+// can only be set after initialization
+DarkSkyApi.extendHourly(true);
 ```
 
 #### To Do 

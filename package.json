@@ -1,6 +1,6 @@
 {
   "name": "dark-sky-api",
-  "version": "0.6.2",
+  "version": "0.6.21",
   "description": "a simple and robust dark sky api service for client-side js",
   "main": "index.js",
   "scripts": {

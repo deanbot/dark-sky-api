@@ -39,11 +39,10 @@ var config = {
 };
 
 var DarkSkyApi = function () {
-  // darkSkyApi; instance of dark sky skeleton
-  // initialized; weather the instance of dark sky api has lat and long set
+  // darkSkyApi; instance of dark-sky-skeleton
+  // initialized; whether the instance of dark-sky-api has lat and long set
   // _units;
   // _language;
-  // _time
   // _extendHourly
   // _postProcessor
 
@@ -170,9 +169,10 @@ var DarkSkyApi = function () {
       }
       return this.darkSkyApi.units(this._units).language(this._language).exclude(config.excludes.filter(function (val) {
         return val != 'currently';
-      }).join(',')).time(false).get();
-      // .then(res => console.log(result))
-      // .then(({ currently }) => this.processWeatherItem(currently));
+      }).join(',')).time(false).get().then(function (_ref2) {
+        var currently = _ref2.currently;
+        return _this.processWeatherItem(currently);
+      });
     }
 
     /**

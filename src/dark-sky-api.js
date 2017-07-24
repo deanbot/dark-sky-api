@@ -23,11 +23,10 @@ const config = {
 };
 
 class DarkSkyApi {
-  // darkSkyApi; instance of dark sky skeleton
-  // initialized; weather the instance of dark sky api has lat and long set
+  // darkSkyApi; instance of dark-sky-skeleton
+  // initialized; whether the instance of dark-sky-api has lat and long set
   // _units;
   // _language;
-  // _time
   // _extendHourly
   // _postProcessor
 
@@ -128,9 +127,8 @@ class DarkSkyApi {
       .language(this._language)
       .exclude(config.excludes.filter(val => val != 'currently').join(','))
       .time(false)
-      .get();
-    // .then(res => console.log(result))
-    // .then(({ currently }) => this.processWeatherItem(currently));
+      .get()
+      .then(({ currently }) => this.processWeatherItem(currently));
   }
 
   /**
