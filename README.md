@@ -116,7 +116,7 @@ DarkSkyApi.loadCurrent(position)
   .then(result => console.log(result));
 ```
 
-Retrieve the current location from the browser
+Retrieve the current location from the browser.
 
 ```javascript
 let position;
@@ -125,6 +125,8 @@ DarkSkyApi.loadPosition()
     position = pos;
   });
 ```
+
+`loadPosition` takes an optional [options param](https://developer.mozilla.org/en-US/docs/Web/API/PositionOptions).
 
 ## Response units
 
@@ -316,7 +318,24 @@ DarkSkyApi.setPostProcessor((item) => {
 DarkSkyApi.extendHourly(true);
 ```
 
-#### To Do 
+## Troubleshooting
+
+Troubleshooting steps:
+
+### Shim Promise
+
+`.then()`/`.catch()`/`.finally()`/etc isn't available in all browsers.
+Make sure and add a promise shim.
+
+examples:
+
+add a shim. I like core-js
+`npm install core-js` 
+
+require in your build
+`require('core-js/es6/promise');`
+
+## To Do 
 
 * add position validation
 * add hourly and minutely api methods

@@ -155,14 +155,17 @@ var DarkSkyApi = function () {
 
     /**
      * Get forecasted week of weather
+     * @param {object} [position] - if omitted will use loadPosition
      */
 
   }, {
     key: 'loadCurrent',
-    value: function loadCurrent() {
+    value: function loadCurrent(position) {
       var _this = this;
 
-      if (!this.initialized) {
+      if (position) {
+        this.position(position);
+      } else if (!this.initialized) {
         return this.loadPosition().then(function (position) {
           return _this.initialize(position).loadCurrent();
         });
@@ -177,14 +180,17 @@ var DarkSkyApi = function () {
 
     /**
      * Get forecasted week of weather
+     * @param {object} [position] - if omitted will use loadPosition
      */
 
   }, {
     key: 'loadForecast',
-    value: function loadForecast() {
+    value: function loadForecast(position) {
       var _this2 = this;
 
-      if (!this.initialized) {
+      if (position) {
+        this.position(position);
+      } else if (!this.initialized) {
         return this.loadPosition().then(function (position) {
           return _this2.initialize(position).loadForecast();
         });
@@ -204,14 +210,17 @@ var DarkSkyApi = function () {
      * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
      * daily and durrently are processed if returned
      * @param {string} excludesBlock - pass comma separated excludes
+     * @param {object} [position] - if omitted will use loadPosition
      */
 
   }, {
     key: 'loadItAll',
-    value: function loadItAll(excludesBlock) {
+    value: function loadItAll(excludesBlock, position) {
       var _this3 = this;
 
-      if (!this.initialized) {
+      if (position) {
+        this.position(position);
+      } else if (!this.initialized) {
         return this.loadPosition().then(function (position) {
           return _this3.initialize(position).loadItAll(excludesBlock);
         });
@@ -236,14 +245,17 @@ var DarkSkyApi = function () {
      * Time machine request
      * @ref https://darksky.net/dev/docs/time-machine
      * @param {*} [time] formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+     * @param {object} [position] - if omitted will use loadPosition
      */
 
   }, {
     key: 'loadTime',
-    value: function loadTime(time) {
+    value: function loadTime(time, position) {
       var _this4 = this;
 
-      if (!this.initialized) {
+      if (position) {
+        this.position(position);
+      } else if (!this.initialized) {
         return this.loadPosition().then(function (position) {
           return _this4.initialize(position).loadTime(time);
         });
@@ -572,7 +584,8 @@ var DarkSkyApi = function () {
   return DarkSkyApi;
 }();
 
-DarkSkyApi.loadPosition = function (options) {
+DarkSkyApi.loadPosition = function () {
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return (0, _geoLocUtils.getNavigatorCoords)(options);
 };
 

@@ -116,9 +116,12 @@ class DarkSkyApi {
 
   /**
    * Get forecasted week of weather
+   * @param {object} [position] - if omitted will use loadPosition
    */
-  loadCurrent() {
-    if (!this.initialized) {
+  loadCurrent(position) {
+    if (position) {
+      this.position(position);
+    } else if (!this.initialized) {
       return this.loadPosition()
         .then(position => this.initialize(position).loadCurrent());
     }
@@ -133,9 +136,12 @@ class DarkSkyApi {
 
   /**
    * Get forecasted week of weather
+   * @param {object} [position] - if omitted will use loadPosition
    */
-  loadForecast() {
-    if (!this.initialized) {
+  loadForecast(position) {
+    if (position) {
+      this.position(position);
+    } else if (!this.initialized) {
       return this.loadPosition()
         .then(position => this.initialize(position).loadForecast());
     }
@@ -157,9 +163,12 @@ class DarkSkyApi {
    * Get the whole kit and kaboodle - contains currently, minutely, hourly, daily, alerts, and flags unless excluded
    * daily and durrently are processed if returned
    * @param {string} excludesBlock - pass comma separated excludes
+   * @param {object} [position] - if omitted will use loadPosition
    */
-  loadItAll(excludesBlock) {
-    if (!this.initialized) {
+  loadItAll(excludesBlock, position) {
+    if (position) {
+      this.position(position);
+    } else if (!this.initialized) {
       return this.loadPosition()
         .then(position => this.initialize(position).loadItAll(excludesBlock));
     }
@@ -188,9 +197,12 @@ class DarkSkyApi {
    * Time machine request
    * @ref https://darksky.net/dev/docs/time-machine
    * @param {*} [time] formatted date time string in format: 'YYYY-MM-DDTHH:mm:ss' i.e. 2000-04-06T12:20:05
+   * @param {object} [position] - if omitted will use loadPosition
    */
-  loadTime(time) {
-    if (!this.initialized) {
+  loadTime(time, position) {
+    if (position) {
+      this.position(position);
+    } else if (!this.initialized) {
       return this.loadPosition()
         .then(position => this.initialize(position).loadTime(time));
     }
@@ -282,7 +294,7 @@ class DarkSkyApi {
   /**
    *  Get browser navigator coords - Promise
    */
-  static loadPosition = (options) => getNavigatorCoords(options);
+  static loadPosition = (options = {}) => getNavigatorCoords(options);
 
   /**
    * Initialize a static instance of weather api with dark sky api key
