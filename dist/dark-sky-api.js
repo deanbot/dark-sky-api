@@ -327,7 +327,9 @@ var DarkSkyApi = function () {
   }, {
     key: 'loadPosition',
     value: function loadPosition() {
-      return DarkSkyApi.loadPosition();
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      return DarkSkyApi.loadPosition(options);
     }
 
     // allow config and deferring of initialization
@@ -570,8 +572,8 @@ var DarkSkyApi = function () {
   return DarkSkyApi;
 }();
 
-DarkSkyApi.loadPosition = function () {
-  return (0, _geoLocUtils.getNavigatorCoords)();
+DarkSkyApi.loadPosition = function (options) {
+  return (0, _geoLocUtils.getNavigatorCoords)(options);
 };
 
 exports.default = DarkSkyApi;
