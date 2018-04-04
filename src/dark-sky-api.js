@@ -266,8 +266,8 @@ class DarkSkyApi {
   /**
    *  Get browser navigator coords - Promise
    */
-  loadPosition() {
-    return DarkSkyApi.loadPosition();
+  loadPosition(options = {}) {
+    return DarkSkyApi.loadPosition(options);
   }
 
   static _api;
@@ -282,7 +282,7 @@ class DarkSkyApi {
   /**
    *  Get browser navigator coords - Promise
    */
-  static loadPosition = () => getNavigatorCoords();
+  static loadPosition = (options) => getNavigatorCoords(options);
 
   /**
    * Initialize a static instance of weather api with dark sky api key
